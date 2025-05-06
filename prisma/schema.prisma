@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+//BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ COLOR SẼ ĐƯỢC XÓA THEO)
+model ProductColor {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  hex       String
+  price      Float
+  stock      Int
+
+  @@index([productId])
+
+}
+//BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ SIZE SẼ ĐƯỢC XÓA THEO)
+model ProductSize {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  price      Float
+  stock      Int
+  @@index([productId])
+
+}
+
+model Product {
+  id          Int          @id @default(autoincrement())
+  name        String @unique
+  description String
+  price       Float
+  isFeatured Boolean @default(false)
+  slug String @unique
+  discount    Float @default(0)
+  viewCount Int @default(0)
+  ratingCount Int @default(0)
+  colors      ProductColor[]
+  sizes       ProductSize[]
+  stock       Int
+  images      Image[]
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([categoryId])
+}
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String
+  parentId    Int?
+  subCategories Category[] @relation("SubCategory")
+  parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([parentId])
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  @@index([productId])
+}
