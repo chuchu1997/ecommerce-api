@@ -29,11 +29,11 @@ export class CreateProductDto {
 
   // Màu sắc của sản phẩm
 
-  colors: string[];
+  colors: any[];
 
   // Kích thước của sản phẩm
 
-  sizes: string[];
+  sizes: any[];
 
   // Số lượng trong kho
 
@@ -48,6 +48,9 @@ export class CreateProductDto {
   categoryId: number;
 
   // Thời gian tạo (tự động khi tạo, không cần nhập)
+
+  //SKU
+  sku?: string;
 
   createdAt?: string;
 
