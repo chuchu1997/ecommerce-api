@@ -29,19 +29,27 @@ export class CategoriesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    console.log('ID', id);
     return this.categoriesService.findOne(+id);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+    const categoryId = Number(id); // Chuyển từ string sang number
+    const category = await this.categoriesService.update(
+      categoryId,
+      updateCategoryDto,
+    );
+    return { message: '✅✅ Cập nhật danh mục thành công ✅✅', category };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const categoryId = Number(id); // Chuyển từ string sang number
+    const category = await this.categoriesService.remove(categoryId);
+    return { message: '✅✅ Xóa danh mục thành công ✅✅', category };
   }
 }

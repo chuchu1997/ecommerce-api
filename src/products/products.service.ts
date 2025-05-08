@@ -7,6 +7,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma } from '@prisma/client';
+import { UploadService } from 'src/upload/upload.service';
 
 type SizeType = {
   id: number;
@@ -27,7 +28,10 @@ type ColorType = {
 };
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private uploadService: UploadService,
+  ) {}
 
   async create(createProductDto: CreateProductDto) {
     const {
@@ -179,20 +183,32 @@ export class ProductsService {
         '⚠️⚠️⚠️ Thiếu thông tin bắt buộc để chỉnh sửa sản phẩm ⚠️⚠️⚠️',
       );
     }
-    //XÓA TẤT CẢ CÁC IMAGE TRONG S3 CLOUD TRƯỚC KHI CẬP NHẬT !!!
-    // isFeatured,
-    // colors,
-    // sizes,
+    //XÓA ảnh trong s3 nếu như list DB và list image request có thay đổi !!!
+    const existingProduct = await this.prisma.product.findUnique({
+      where: { id },
+      select: { images: true }, // Giả sử "images" là một mảng URL
+    });
 
-    // const colorsData: Prisma.ProductColorUpdateManyWithoutProductNestedInput = colors?.map((color) => ({
-    //   where: { id: color.id },  // Giả sử mỗi color có trường 'id' để cập nhật
-    //   data: {
-    //     price: color.price,
-    //     stock: color.stock,
-    //     name: color.name,
-    //     hex: color.hex,
-    //   },
-    // }));
+    const isImagesUpdated =
+      images &&
+      JSON.stringify(images) !== JSON.stringify(existingProduct?.images);
+
+    // Kiểm tra nếu danh sách ảnh có thay đổi
+    if (isImagesUpdated) {
+      // Xóa các ảnh không còn trong danh sách mới
+      const imagesToDelete =
+        existingProduct?.images?.filter(
+          (oldImage) =>
+            !images.some((newImage) => newImage.url === oldImage.url),
+        ) || [];
+
+      await Promise.all(
+        imagesToDelete.map((image) =>
+          this.uploadService.deleteImagesFromS3(image.url),
+        ),
+      );
+    }
+
     const product = await this.prisma.product.update({
       where: {
         id,
@@ -201,9 +217,18 @@ export class ProductsService {
         sku: sku ?? undefined,
         name,
         description,
+
         price,
         isFeatured,
         discount,
+        ...(isImagesUpdated && {
+          images: {
+            deleteMany: {}, // Xóa tất cả ảnh cũ trong DB trước khi thêm mới
+            createMany: {
+              data: images.map((image: { url: string }) => image),
+            },
+          },
+        }),
         ...(colors &&
           colors.length > 0 && {
             colors: {
@@ -270,14 +295,23 @@ export class ProductsService {
 
   async remove(id: number) {
     //Phải xóa các bản ghi images liên quan ở S3 clound trước khi xóa !!!
-
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
+      select: { images: true },
     });
 
     if (!existingProduct) {
       throw new NotFoundException(
         `⚠️⚠️⚠️ Sản phẩm với ID ${id} không tồn tại để xóa  ⚠️⚠️⚠️ `,
+      );
+    }
+    //Phải xóa các bản ghi images liên quan ở S3 clound trước khi xóa !!!
+
+    if (existingProduct?.images) {
+      await Promise.all(
+        existingProduct.images.map((image) =>
+          this.uploadService.deleteImagesFromS3(image.url),
+        ),
       );
     }
 
@@ -286,11 +320,14 @@ export class ProductsService {
       data: {
         images: {
           deleteMany: {},
+          // Xóa tất cả ảnh liên quan đến sản phẩm ở bảng images quan hệ đến productId
         },
         sizes: {
+          // Xóa tất cả sizes liên quan đến sản phẩm ở bảng ProductSize quan hệ đến productId
           deleteMany: {},
         },
         colors: {
+          //xóa tất cả colors liên quan đến sản phẩm ở bảng ProductColor quan hệ đến productId
           deleteMany: {},
         },
       },

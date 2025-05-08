@@ -81,11 +81,42 @@ export class CategoriesService {
     return `This action returns a #${id} category`;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    const { name, slug, description, parentId } = updateCategoryDto;
+    if (!name || !slug || !description) {
+      throw new BadRequestException(
+        '⚠️⚠️⚠️ Thiếu thông tin bắt buộc để cập nhật danh mục  ⚠️⚠️⚠️',
+      );
+    }
+    // Kiểm tra xem slug đã tồn tại hay chưa
+    const existingCategory = await this.prisma.category.findUnique({
+      where: { slug },
+    });
+    if (existingCategory && existingCategory.id !== id) {
+      throw new BadRequestException('⚠️⚠️⚠️ Slug đã tồn tại ⚠️⚠️⚠️');
+    }
+    // Cập nhật danh mục
+    const category = await this.prisma.category.update({
+      where: { id },
+      data: {
+        name,
+        slug,
+        description,
+        parentId: parentId ? Number(parentId) : null, // Chuyển đổi parentId thành số nếu có
+      },
+    });
+
+    return category;
+
+    // await return `This action updates a #${id} category`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number) {
+    // Xóa danh mục
+    const category = await this.prisma.category.delete({
+      where: { id },
+    });
+
+    return category;
   }
 }
