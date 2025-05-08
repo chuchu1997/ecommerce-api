@@ -23,14 +23,18 @@ export class CategoriesController {
   }
 
   @Get()
-  findAll(@Query() query: { justGetParent?: string }) {
-    return this.categoriesService.findAll(query);
+  async findAll(@Query() query: { justGetParent?: string }) {
+    const categories = await this.categoriesService.findAll(query);
+    return {
+      message: '✅✅ Lấy danh sách , danh mục thành công  ✅✅',
+      categories,
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    console.log('ID', id);
-    return this.categoriesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const categoryId = Number(id); // Chuyển từ string sang number
+    return await this.categoriesService.findOne(categoryId);
   }
 
   @Patch(':id')

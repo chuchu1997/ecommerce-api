@@ -38,6 +38,76 @@ model ProductSize {
 
 }
 
+
+model Order {
+  id              Int           @id @default(autoincrement())
+  orderNumber     String        @unique
+  totalAmount     Float
+  status          OrderStatus   @default(ORDERED)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Thông tin khách hàng
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  shippingAddress String
+  // Liên kết với bảng OrderItem
+  items           OrderItem[]
+  payment Payment?
+
+  @@index([orderNumber])
+}
+model Payment {
+  id               Int           @id @default(autoincrement())
+  method           PaymentMethod
+  status           PaymentStatus @default(PENDING)
+  isPaid           Boolean       @default(false)
+
+  // Thông tin chuyển khoản
+  bankName         String?       // Tên ngân hàng (nếu chuyển khoản)
+  payerName        String?       // Tên người chuyển
+  transactionId    String?       // Mã giao dịch
+  paymentTimestamp DateTime?     // Thời gian chuyển khoản
+
+  // Khóa ngoại liên kết với đơn hàng
+  orderId          Int           @unique
+  order            Order         @relation(fields: [orderId], references: [id])
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int      @default(1)
+  unitPrice Float
+  subtotal  Float    @default(0)
+  productId Int
+  orderId   Int
+  product   Product  @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+
+  @@index([productId])
+  @@index([orderId])
+}
+enum OrderStatus {
+  ORDERED           // Đã đặt hàng
+  AWAITING_SHIPMENT // Chờ chuyển phát
+  IN_TRANSIT        // Đang trung chuyển
+  DELIVERED         // Đã giao đơn hàng
+  CANCELED          // Đã hủy
+}
+enum PaymentMethod {
+  COD              // Thanh toán khi nhận hàng
+  BANK_TRANSFER    // Chuyển khoản ngân hàng
+}
+enum PaymentStatus {
+  PENDING      // Đang chờ thanh toán
+  COMPLETED    // Đã thanh toán
+  FAILED       // Thanh toán thất bại
+  CANCELED     // Đã hủy thanh toán
+}
+
 model Product {
   id          Int          @id @default(autoincrement())
   name        String @unique
@@ -48,7 +118,7 @@ model Product {
   discount    Float @default(0)
   viewCount Int @default(0)
   ratingCount Int @default(0)
-
+  orderItems OrderItem[]
   colors      ProductColor[]
   sizes       ProductSize[]
   stock       Int
@@ -56,10 +126,26 @@ model Product {
   categoryId  Int
   category    Category @relation(fields: [categoryId], references: [id])
   sku         String? @unique
+  seo           SEO?      @relation("ProductToSEO")
+
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  
+
   @@index([categoryId])
+
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  imageUrl     String
+  link      String?
+  title     String?
+  description String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 model Category {
   id          Int       @id @default(autoincrement())
@@ -70,10 +156,34 @@ model Category {
   subCategories Category[] @relation("SubCategory")
   parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   products    Product[]
+  seo           SEO?      @relation("CategoryToSEO")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([parentId])
+
+}
+
+model SEO {
+  id              Int      @id @default(autoincrement()) // ID của SEO
+  title           String   // Tiêu đề SEO
+  description     String   // Mô tả SEO
+  keywords        String   // Từ khóa SEO (dạng chuỗi, có thể phân tách bằng dấu phẩy)
+  openGraphTitle  String?  // Tiêu đề OpenGraph (cho chia sẻ mạng xã hội)
+  openGraphDescription String? // Mô tả OpenGraph
+  openGraphImage  String?  // Hình ảnh OpenGraph
+ 
+  url             String   // URL của đối tượng (Product, Category, Blog)
+  productId       Int? @unique    // Khóa ngoại tới Product
+  categoryId         Int?     @unique
+  
+  product           Product? @relation("ProductToSEO", fields: [productId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  category           Category? @relation("CategoryToSEO", fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  createdAt       DateTime @default(now()) // Thời gian tạo
+  updatedAt       DateTime @updatedAt      // Thời gian cập nhật
+
+  
 }
 
 model Image {
