@@ -41,9 +41,8 @@ model ProductSize {
 
 model Order {
   id              Int           @id @default(autoincrement())
-  orderNumber     String        @unique
   totalAmount     Float
-  status          OrderStatus   @default(ORDERED)
+  status          OrderStatus   @default(ORDERED) //Default status là ORDERED (Đã đặt hàng !!!)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -55,8 +54,7 @@ model Order {
   // Liên kết với bảng OrderItem
   items           OrderItem[]
   payment Payment?
-
-  @@index([orderNumber])
+ 
 }
 model Payment {
   id               Int           @id @default(autoincrement())

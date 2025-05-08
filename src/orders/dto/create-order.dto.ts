@@ -1,5 +1,4 @@
 export class CreateOrderDto {
-  orderNumber: string;
   totalAmount: number;
   customerName: string;
   customerEmail: string;
@@ -25,25 +24,29 @@ export class PaymentDto {
 }
 
 export class OrderItemDto {
+  id?: number; // ID của sản phẩm (nếu có)
+  orderId: number; // ID của đơn hàng (nếu có)
+  unitPrice: number; // Giá đơn vị của sản phẩm
+  subtotal: number; // Tổng giá của sản phẩm (quantity * unitPrice)
   productId: number;
   quantity: number;
   price: number;
 }
 export enum OrderStatus {
-  ORDERED = 'ORDERED',
-  PROCESSING = 'PROCESSING',
-  SHIPPED = 'SHIPPED',
-  DELIVERED = 'DELIVERED',
-  CANCELED = 'CANCELED',
+  ORDERED = 'ORDERED', // Đã đặt hàng
+  PROCESSING = 'PROCESSING', // Chờ chuyển phát
+  SHIPPED = 'SHIPPED', // Đang trung chuyển
+  DELIVERED = 'DELIVERED', // Đã giao
+  CANCELED = 'CANCELED', // Đã hủy
 }
 export enum PaymentStatus {
-  PENDING, // Đang chờ thanh toán
-  COMPLETED, // Đã thanh toán
-  FAILED, // Thanh toán thất bại
-  CANCELED, // Đã hủy thanh toán
+  PENDING = 'PENDING', // Đang chờ thanh toán
+  COMPLETED = 'COMPLETED', // Đã thanh toán
+  FAILED = 'FAILED', // Thanh toán thất bại
+  CANCELED = 'CANCELED', // Đã hủy thanh toán
 }
 
 export enum PaymentMethod {
-  COD, // Thanh toán khi nhận hàng
-  BANK_TRANSFER, // Chuyển khoản ngân hàng
+  COD = 'COD', // Thanh toán khi nhận hàng
+  BANK_TRANSFER = 'BANK_TRANSFER', // Chuyển khoản ngân hàng
 }
