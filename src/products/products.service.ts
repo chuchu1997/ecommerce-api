@@ -14,7 +14,6 @@ type SizeType = {
   productId: number;
   price: number;
   name: string;
-
   stock: number;
 };
 
@@ -143,7 +142,7 @@ export class ProductsService {
         sizes: true,
       },
     });
-
+    //TODO:
     if (!product) {
       throw new NotFoundException(
         `⚠️⚠️⚠️ Không tìm thấy sản phẩm với ID:${id} ⚠️⚠️⚠️ `,

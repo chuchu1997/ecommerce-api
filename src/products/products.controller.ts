@@ -50,7 +50,7 @@ export class ProductsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const productId = Number(id); // Chuyển từ string sang number
+    const productId = parseInt(id, 10); // Chuyển từ string sang number
     if (isNaN(productId)) {
       throw new BadRequestException('ID phải là một số hợp lệ');
     }

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'src/prisma.service';
+import { Order, OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -46,8 +47,39 @@ export class OrdersService {
     return updatedOrder;
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  async findAll(query: {
+    isToday?: boolean; // Lấy trong 24h qua
+    isThisWeek?: boolean; // Lấy trong 7 ngày qua
+    isThisMonth?: boolean;
+    isCanceled?: boolean; // Đơn hàng bị hủy
+    isSent?: boolean; // Đơn hàng đã gửi
+    isDelivered?: boolean; // Đơn hàng đã giao
+    isCompleted?: boolean; // Đơn hàng đã thành công
+  }): Promise<Order[]> {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        createdAt: {
+          gte: query.isToday
+            ? new Date(Date.now() - 24 * 60 * 60 * 1000)
+            : query.isThisWeek
+              ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+              : query.isThisMonth
+                ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                : undefined,
+        },
+        status: {
+          in: [
+            query.isCanceled ? 'CANCELED' : undefined,
+            query.isSent ? 'SENT' : undefined,
+            query.isDelivered ? 'DELIVERED' : undefined,
+            query.isCompleted ? 'COMPLETED' : undefined,
+          ].filter(Boolean) as OrderStatus[],
+        },
+      },
+    });
+    return orders;
+
+    // return `This action returns all orders`;
   }
 
   findOne(id: number) {

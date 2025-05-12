@@ -10,11 +10,6 @@ export class CategoriesService {
   async create(createCategoryDto: CreateCategoryDto) {
     const { name, slug, description, parentId } = createCategoryDto;
 
-    if (!name || !slug || !description) {
-      throw new BadRequestException(
-        '⚠️⚠️⚠️ Thiếu thông tin bắt buộc để tạo danh mục  ⚠️⚠️⚠️',
-      );
-    }
     // Kiểm tra xem slug đã tồn tại hay chưa
     const existingCategory = await this.prisma.category.findUnique({
       where: { slug },
@@ -27,10 +22,10 @@ export class CategoriesService {
         name,
         slug,
         description,
-        parentId: parentId ? Number(parentId) : null, // Chuyển đổi parentId thành số nếu có
+        parentId: parentId ? parentId : null, // Chuyển đổi parentId thành số nếu có
       },
     });
-    console.log('CATE', category);
+
     return category;
   }
 
@@ -86,11 +81,6 @@ export class CategoriesService {
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     const { name, slug, description, parentId } = updateCategoryDto;
-    if (!name || !slug || !description) {
-      throw new BadRequestException(
-        '⚠️⚠️⚠️ Thiếu thông tin bắt buộc để cập nhật danh mục  ⚠️⚠️⚠️',
-      );
-    }
     // Kiểm tra xem slug đã tồn tại hay chưa
     const existingCategory = await this.prisma.category.findUnique({
       where: { slug },
