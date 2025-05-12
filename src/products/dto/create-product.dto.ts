@@ -15,9 +15,9 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { UpdateProductSizeDto } from './product-size/update-product-size.dto';
-import { UpdateProductColorDto } from './product-color/update-product-color.dto';
-
+import { ProductColorDto } from './product-color/product-color.dto';
+import { ProductSizeDto } from './product-size/product-size.dto';
+import { SEODto } from 'src/utils/seo.dto';
 export class CreateProductDto {
   // Tên sản phẩm
   @IsString()
@@ -91,17 +91,23 @@ export class CreateProductDto {
   // Màu sắc của sản phẩm
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => UpdateProductColorDto)
+  @Type(() => ProductColorDto)
   @IsOptional()
-  colors?: UpdateProductColorDto[] = [];
+  colors?: ProductColorDto[] = [];
 
   // Kích thước của sản phẩm
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => UpdateProductSizeDto)
+  @Type(() => ProductSizeDto)
   @IsOptional()
-  sizes?: UpdateProductSizeDto[] = [];
+  sizes?: ProductSizeDto[] = [];
+
+  //SEO cho sản phẩm
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => SEODto)
+  seo?: SEODto;
 
   // Số lượng trong kho
   @IsInt()

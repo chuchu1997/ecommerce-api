@@ -1,7 +1,12 @@
 import { Transform } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 
-export class CreateProductColorDto {
+export class ProductColorDto {
+  @IsOptional()
+  @IsInt({ message: 'ID của Product Size phải là Number !!! ' })
+  @Transform(({ value }) => parseInt(value, 10))
+  id: number;
+
   @IsNotEmpty({ message: 'Tên không được để trống!' })
   name: string;
 

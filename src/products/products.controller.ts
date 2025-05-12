@@ -7,14 +7,12 @@ import {
   Param,
   Delete,
   Query,
-  UseFilters,
-  NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { AllExceptionsFilter } from 'src/filters/all-exceptions/all-exceptions.filter';
+import { ProductQueryFilterDto } from './dto/product-query-filter.dto';
 
 @Controller('products')
 // @UseFilters(AllExceptionsFilter)
@@ -33,13 +31,7 @@ export class ProductsController {
   @Get()
   async findAll(
     @Query()
-    query: {
-      page?: number;
-      limit?: number;
-      isFeatured?: boolean;
-      categoryId?: number;
-      slug: string;
-    },
+    query: ProductQueryFilterDto,
   ) {
     const products = await this.productsService.findProductsWithQuery(query);
     return {
@@ -50,7 +42,7 @@ export class ProductsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const productId = parseInt(id, 10); // Chuyển từ string sang number
+    const productId = this.productsService.convertProductIDStringToNumber(id);
     if (isNaN(productId)) {
       throw new BadRequestException('ID phải là một số hợp lệ');
     }
@@ -66,7 +58,7 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    const productId = Number(id); // Chuyển từ string sang number
+    const productId = this.productsService.convertProductIDStringToNumber(id);
     if (isNaN(productId)) {
       throw new BadRequestException('⚠️⚠️ ID phải là một số hợp lệ ⚠️⚠️');
     }
@@ -82,7 +74,7 @@ export class ProductsController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const productId = Number(id); // Chuyển từ string sang number
+    const productId = this.productsService.convertProductIDStringToNumber(id);
     if (isNaN(productId)) {
       throw new BadRequestException('⚠️⚠️ ID phải là một số hợp lệ ⚠️⚠️');
     }

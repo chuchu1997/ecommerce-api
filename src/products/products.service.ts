@@ -6,25 +6,12 @@ import {
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProductColor } from '@prisma/client';
 import { UploadService } from 'src/upload/upload.service';
+import { ProductColorDto } from './dto/product-color/product-color.dto';
+import { ProductSizeDto } from './dto/product-size/product-size.dto';
+import { ProductQueryFilterDto } from './dto/product-query-filter.dto';
 
-type SizeType = {
-  id: number;
-  productId: number;
-  price: number;
-  name: string;
-  stock: number;
-};
-
-type ColorType = {
-  id: number;
-  productId: number;
-  hex: string;
-  name: string;
-  price: number;
-  stock: number;
-};
 @Injectable()
 export class ProductsService {
   constructor(
@@ -33,86 +20,73 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const {
-      name,
-      description,
-      price,
-      isFeatured,
-      slug,
-      colors,
-      sizes,
-      stock,
-      images,
-      categoryId,
-      sku,
-    } = createProductDto;
+    const { ...data } = createProductDto;
 
-    if (
-      !name ||
-      !slug ||
-      !description ||
-      !price ||
-      !stock ||
-      !categoryId ||
-      !images ||
-      images.length === 0
-    ) {
-      throw new BadRequestException(
-        '⚠️⚠️⚠️ Thiếu thông tin bắt buộc để tạo sản phẩm ⚠️⚠️⚠️',
-      );
-    }
     const product = await this.prisma.product.create({
       data: {
-        name,
-        description: description,
-        price: price,
-        isFeatured: isFeatured ?? false,
-        sku: sku ?? undefined,
-        slug: slug,
-        ...(colors &&
-          colors.length > 0 && {
+        // Nếu có SEO thì tiến hành tạo mới
+        // Phải tạo kiểu này vì SEO có relation với PRODUCT !!!
+        ...(data.seo && {
+          seo: {
+            create: {
+              ...data.seo,
+            },
+          },
+        }),
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        isFeatured: data.isFeatured ?? false,
+        sku: data.sku ?? undefined,
+        slug: data.slug,
+        ...(data.colors &&
+          data.colors.length > 0 && {
             colors: {
               createMany: {
-                data: [...colors.map((color: ColorType) => color)],
+                data: [
+                  ...data.colors.map((color: ProductColorDto) => ({
+                    ...color,
+                    price: color.price ?? 0, // Ensure price is always a number
+                  })),
+                ],
               },
             },
           }),
-        ...(sizes &&
-          sizes.length > 0 && {
+        ...(data.sizes &&
+          data.sizes.length > 0 && {
             sizes: {
               createMany: {
-                data: [...sizes.map((size: SizeType) => size)],
+                data: [
+                  ...data.sizes.map((size: ProductSizeDto) => ({
+                    ...size,
+                    price: size.price ?? 0, // Ensure price is always a number
+                  })),
+                ],
               },
             },
           }),
 
-        stock: createProductDto.stock,
+        stock: data.stock,
         images: {
           createMany: {
-            data: [...images.map((image: { url: string }) => image)],
+            data: [...data.images.map((image: { url: string }) => image)],
           },
         },
-        categoryId: categoryId,
+        categoryId: data.categoryId,
       },
     });
 
     return product;
   }
 
-  async findProductsWithQuery(query: {
-    page?: number;
-    limit?: number;
-    isFeatured?: boolean;
-    categoryId?: number;
-    slug?: string;
-  }) {
-    const { page = 1, limit = 4, isFeatured, categoryId, slug } = query;
+  async findProductsWithQuery(query: ProductQueryFilterDto) {
+    const { limit = 4, page = 1, ...data } = query;
 
     const products = await this.prisma.product.findMany({
       where: {
-        slug: slug,
-        categoryId,
-        isFeatured: isFeatured ? true : undefined,
+        slug: data.slug,
+        categoryId: data.categoryId,
+        isFeatured: data.isFeatured ? true : undefined,
       },
       include: {
         images: true,
@@ -152,49 +126,22 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const {
-      name,
-      description,
-      price,
-      isFeatured,
-      slug,
-      colors,
-      sizes,
-      stock,
-      images,
-      categoryId,
-      discount,
-      sku,
-    } = updateProductDto;
+    const { images, ...data } = updateProductDto;
 
-    if (
-      (!name ||
-        !slug ||
-        !description ||
-        !price ||
-        !stock ||
-        !categoryId ||
-        !images ||
-        images.length === 0,
-      sku)
-    ) {
-      throw new BadRequestException(
-        '⚠️⚠️⚠️ Thiếu thông tin bắt buộc để chỉnh sửa sản phẩm ⚠️⚠️⚠️',
-      );
-    }
     //XÓA ảnh trong s3 nếu như list DB và list image request có thay đổi !!!
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
-      select: { images: true }, // Giả sử "images" là một mảng URL
+      select: { images: true, seo: true }, // Giả sử "images" là một mảng URL
     });
 
+    // Nếu như object json giống nhau có nghĩa là không có sự thay đổi về hình ảnh nên không cần cập nhật hình ảnh .
     const isImagesUpdated =
       images &&
       JSON.stringify(images) !== JSON.stringify(existingProduct?.images);
 
     // Kiểm tra nếu danh sách ảnh có thay đổi
     if (isImagesUpdated) {
-      // Xóa các ảnh không còn trong danh sách mới
+      // Xóa các ảnh cũ không còn tồn tại trong danh sách mới
       const imagesToDelete =
         existingProduct?.images?.filter(
           (oldImage) =>
@@ -213,13 +160,20 @@ export class ProductsService {
         id,
       },
       data: {
-        sku: sku ?? undefined,
-        name,
-        description,
-
-        price,
-        isFeatured,
-        discount,
+        sku: data.sku ?? undefined,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        isFeatured: data.isFeatured,
+        discount: data.discount,
+        ...(data.seo && {
+          //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
+          seo: {
+            update: {
+              ...data.seo,
+            },
+          },
+        }),
         ...(isImagesUpdated && {
           images: {
             deleteMany: {}, // Xóa tất cả ảnh cũ trong DB trước khi thêm mới
@@ -228,29 +182,29 @@ export class ProductsService {
             },
           },
         }),
-        ...(colors &&
-          colors.length > 0 && {
+        ...(data.colors &&
+          data.colors.length > 0 && {
             colors: {
               deleteMany: {
                 id: {
                   //Xóa tất cả các color không có trong mảng colors mới được cập nhật bởi User !!!
-                  notIn: colors
-                    .map((color: ColorType) => color.id)
+                  notIn: data.colors
+                    .map((color: ProductColorDto) => color.id)
                     .filter((id) => !!id),
                 },
               },
-              upsert: colors.map((color: ColorType) => ({
+              upsert: data.colors.map((color: ProductColorDto) => ({
                 //Kiểm tra xem có màu sắc nào mới không nếu có thì ghi vào DB
                 where: { id: color.id || 0 },
                 create: {
-                  price: color.price,
+                  price: color.price ?? 0,
                   stock: color.stock,
                   name: color.name,
                   hex: color.hex,
                   productId: id,
                 },
                 update: {
-                  price: color.price,
+                  price: color.price ?? 0,
                   stock: color.stock,
                   name: color.name,
                   hex: color.hex,
@@ -259,28 +213,28 @@ export class ProductsService {
               })),
             },
           }),
-        ...(sizes &&
-          sizes.length > 0 && {
+        ...(data.sizes &&
+          data.sizes.length > 0 && {
             sizes: {
               deleteMany: {
                 id: {
-                  notIn: sizes
-                    .map((size: SizeType) => size.id)
+                  notIn: data.sizes
+                    .map((size: ProductSizeDto) => size.id)
                     .filter((id) => !!id),
                 },
               },
               // Upsert để cập nhật hoặc tạo mới
-              upsert: sizes.map((size: SizeType) => ({
+              upsert: data.sizes.map((size: ProductSizeDto) => ({
                 where: { id: size.id || 0 },
                 create: {
                   name: size.name,
-                  price: size.price,
+                  price: size.price ?? 0,
                   productId: id,
                   stock: size.stock,
                 },
                 update: {
                   name: size.name,
-                  price: size.price,
+                  price: size.price ?? 0,
                   stock: size.stock,
                   productId: id,
                 },
@@ -290,6 +244,9 @@ export class ProductsService {
       },
     });
     return product;
+  }
+  convertProductIDStringToNumber(id: string) {
+    return parseInt(id, 10);
   }
 
   async remove(id: number) {
