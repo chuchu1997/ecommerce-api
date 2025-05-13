@@ -8,21 +8,25 @@ export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    const { name, slug, description, parentId } = createCategoryDto;
+    const { seo, ...data } = createCategoryDto;
 
     // Kiểm tra xem slug đã tồn tại hay chưa
     const existingCategory = await this.prisma.category.findUnique({
-      where: { slug },
+      where: { slug: data.slug },
     });
     if (existingCategory) {
       throw new BadRequestException('⚠️⚠️⚠️ Slug đã tồn tại ⚠️⚠️⚠️');
     }
     const category = await this.prisma.category.create({
       data: {
-        name,
-        slug,
-        description,
-        parentId: parentId ? parentId : null, // Chuyển đổi parentId thành số nếu có
+        ...data,
+        ...(seo && {
+          seo: {
+            create: {
+              ...seo,
+            },
+          },
+        }),
       },
     });
 
@@ -78,12 +82,15 @@ export class CategoriesService {
     });
     return category;
   }
+  convertCategoryIdToNumber(categoryID: string): number {
+    return parseInt(categoryID, 10);
+  }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    const { name, slug, description, parentId } = updateCategoryDto;
+    const { seo, ...data } = updateCategoryDto;
     // Kiểm tra xem slug đã tồn tại hay chưa
     const existingCategory = await this.prisma.category.findUnique({
-      where: { slug },
+      where: { slug: data.slug },
     });
     if (existingCategory && existingCategory.id !== id) {
       throw new BadRequestException('⚠️⚠️⚠️ Slug đã tồn tại ⚠️⚠️⚠️');
@@ -92,10 +99,15 @@ export class CategoriesService {
     const category = await this.prisma.category.update({
       where: { id },
       data: {
-        name,
-        slug,
-        description,
-        parentId: parentId ? Number(parentId) : null, // Chuyển đổi parentId thành số nếu có
+        ...data,
+        ...(seo && {
+          //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
+          seo: {
+            update: {
+              ...seo,
+            },
+          },
+        }),
       },
     });
 

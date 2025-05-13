@@ -5,9 +5,10 @@ import { ProductsModule } from './products/products.module';
 import { UploadModule } from './upload/upload.module';
 import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
+import { BannerModule } from './banner/banner.module';
 
 @Module({
-  imports: [ProductsModule, UploadModule, CategoriesModule, OrdersModule],
+  imports: [ProductsModule, UploadModule, CategoriesModule, OrdersModule, BannerModule],
   controllers: [AppController],
   providers: [AppService],
 })

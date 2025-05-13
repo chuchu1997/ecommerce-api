@@ -120,6 +120,11 @@ export class CreateProductDto {
   @ArrayMinSize(1, { message: 'Sản phẩm phải có ít nhất 1 ảnh' })
   images: any[];
 
+  //Thương hiệu nào
+  @IsOptional()
+  @IsInt({ message: 'Brand ID phải là một số nguyên!' })
+  @Transform(({ value }) => parseInt(value, 10))
+  brandID: number;
   // ID của danh mục sản phẩm
   @IsNotEmpty({ message: 'categoryId không được để trống!' })
   @IsInt({ message: 'categoryId phải là một số nguyên!' })

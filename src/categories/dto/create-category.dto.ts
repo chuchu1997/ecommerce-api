@@ -6,8 +6,10 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  ValidateNested,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+import { SEODto } from 'src/utils/seo.dto';
 
 export class CreateCategoryDto {
   @IsNotEmpty()
@@ -33,6 +35,15 @@ export class CreateCategoryDto {
     return value;
   })
   slug: string;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => SEODto)
+  seo?: SEODto;
+
+  @IsNotEmpty()
+  @IsString()
+  imageBillboard: string;
 
   @IsNotEmpty()
   @IsString()

@@ -20,59 +20,55 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const { ...data } = createProductDto;
+    const { images, sizes, colors, seo, ...data } = createProductDto;
 
     const product = await this.prisma.product.create({
       data: {
+        ...data,
         // Nếu có SEO thì tiến hành tạo mới
         // Phải tạo kiểu này vì SEO có relation với PRODUCT !!!
-        ...(data.seo && {
+        ...(seo && {
           seo: {
             create: {
-              ...data.seo,
+              ...seo,
             },
           },
         }),
+
         name: data.name,
         description: data.description,
         price: data.price,
         isFeatured: data.isFeatured ?? false,
         sku: data.sku ?? undefined,
         slug: data.slug,
-        ...(data.colors &&
-          data.colors.length > 0 && {
+        ...(colors &&
+          colors.length > 0 && {
             colors: {
               createMany: {
-                data: [
-                  ...data.colors.map((color: ProductColorDto) => ({
-                    ...color,
-                    price: color.price ?? 0, // Ensure price is always a number
-                  })),
-                ],
+                data: colors.map((color: ProductColorDto) => ({
+                  ...color,
+                  price: color.price ?? 0,
+                })),
               },
             },
           }),
-        ...(data.sizes &&
-          data.sizes.length > 0 && {
+        ...(sizes &&
+          sizes.length > 0 && {
             sizes: {
               createMany: {
-                data: [
-                  ...data.sizes.map((size: ProductSizeDto) => ({
-                    ...size,
-                    price: size.price ?? 0, // Ensure price is always a number
-                  })),
-                ],
+                data: sizes.map((size: ProductSizeDto) => ({
+                  ...size,
+                  price: size.price ?? 0,
+                })),
               },
             },
           }),
 
-        stock: data.stock,
         images: {
           createMany: {
-            data: [...data.images.map((image: { url: string }) => image)],
+            data: [...images.map((image: { url: string }) => image)],
           },
         },
-        categoryId: data.categoryId,
       },
     });
 
@@ -126,7 +122,13 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const { images, ...data } = updateProductDto;
+    const {
+      images = [],
+      seo,
+      colors = [],
+      sizes = [],
+      ...data
+    } = updateProductDto;
 
     //XÓA ảnh trong s3 nếu như list DB và list image request có thay đổi !!!
     const existingProduct = await this.prisma.product.findUnique({
@@ -141,36 +143,24 @@ export class ProductsService {
 
     // Kiểm tra nếu danh sách ảnh có thay đổi
     if (isImagesUpdated) {
-      // Xóa các ảnh cũ không còn tồn tại trong danh sách mới
-      const imagesToDelete =
-        existingProduct?.images?.filter(
-          (oldImage) =>
-            !images.some((newImage) => newImage.url === oldImage.url),
-        ) || [];
-
+      const oldUrls = existingProduct?.images?.map((i) => i.url) || [];
+      const newUrls = images.map((i) => i.url);
+      const urlsToDelete = oldUrls.filter((url) => !newUrls.includes(url));
       await Promise.all(
-        imagesToDelete.map((image) =>
-          this.uploadService.deleteImagesFromS3(image.url),
-        ),
+        urlsToDelete.map((url) => this.uploadService.deleteImagesFromS3(url)),
       );
     }
-
     const product = await this.prisma.product.update({
       where: {
         id,
       },
       data: {
-        sku: data.sku ?? undefined,
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        isFeatured: data.isFeatured,
-        discount: data.discount,
-        ...(data.seo && {
+        ...data,
+        ...(seo && {
           //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
           seo: {
             update: {
-              ...data.seo,
+              ...seo,
             },
           },
         }),
@@ -182,62 +172,36 @@ export class ProductsService {
             },
           },
         }),
-        ...(data.colors &&
-          data.colors.length > 0 && {
+        ...(colors &&
+          colors.length > 0 && {
             colors: {
               deleteMany: {
                 id: {
                   //Xóa tất cả các color không có trong mảng colors mới được cập nhật bởi User !!!
-                  notIn: data.colors
-                    .map((color: ProductColorDto) => color.id)
-                    .filter((id) => !!id),
+                  notIn: colors.map((c) => c.id).filter(Boolean),
                 },
               },
-              upsert: data.colors.map((color: ProductColorDto) => ({
+              upsert: colors.map((color: ProductColorDto) => ({
                 //Kiểm tra xem có màu sắc nào mới không nếu có thì ghi vào DB
                 where: { id: color.id || 0 },
-                create: {
-                  price: color.price ?? 0,
-                  stock: color.stock,
-                  name: color.name,
-                  hex: color.hex,
-                  productId: id,
-                },
-                update: {
-                  price: color.price ?? 0,
-                  stock: color.stock,
-                  name: color.name,
-                  hex: color.hex,
-                  productId: id,
-                },
+                create: { ...color, price: color.price ?? 0, productId: id },
+                update: { ...color, price: color.price ?? 0, productId: id },
               })),
             },
           }),
-        ...(data.sizes &&
-          data.sizes.length > 0 && {
+        ...(sizes &&
+          sizes.length > 0 && {
             sizes: {
               deleteMany: {
                 id: {
-                  notIn: data.sizes
-                    .map((size: ProductSizeDto) => size.id)
-                    .filter((id) => !!id),
+                  notIn: sizes.map((c) => c.id).filter(Boolean),
                 },
               },
               // Upsert để cập nhật hoặc tạo mới
-              upsert: data.sizes.map((size: ProductSizeDto) => ({
+              upsert: sizes.map((size: ProductSizeDto) => ({
                 where: { id: size.id || 0 },
-                create: {
-                  name: size.name,
-                  price: size.price ?? 0,
-                  productId: id,
-                  stock: size.stock,
-                },
-                update: {
-                  name: size.name,
-                  price: size.price ?? 0,
-                  stock: size.stock,
-                  productId: id,
-                },
+                create: { ...size, price: size.price ?? 0, productId: id },
+                update: { ...size, price: size.price ?? 0, productId: id },
               })),
             },
           }),

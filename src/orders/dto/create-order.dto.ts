@@ -1,52 +1,32 @@
-export class CreateOrderDto {
-  totalAmount: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  shippingAddress: string;
-  items: OrderItemDto[];
-  payment: PaymentDto;
-}
+import { Transform, Type } from 'class-transformer';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  ValidateNested,
+} from 'class-validator';
+import { OrderItemDTO } from './orderItem/order-item.dto';
+import { PaymentDto } from './payment/payment.dto';
 
-export class PaymentDto {
-  method: PaymentMethod; // Phương thức thanh toán
-  status: PaymentStatus; // Trạng thái thanh toán
-  isPaid: boolean; // Đã thanh toán hay chưa
-  bankName?: string; // Tên ngân hàng (nếu chuyển khoản)
+export class CreateOrderDTO {
+  @IsNotEmpty({ message: 'User ID phải có  !' })
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  userId: number;
 
-  payerName?: string; // Tên người chuyển (nếu chuyển khoản)
+  @IsNotEmpty({ message: 'Tổng giá trị của đơn hàng không được bỏ trống' })
+  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  total: number;
 
-  // Thông tin chuyển khoản
-  paymentTimestamp?: Date; // Thời gian chuyển khoản (nếu chuyển khoản)
-  orderId: number;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderItemDTO)
+  items: OrderItemDTO[] = [];
 
-  transactionId?: string; // Mã giao dịch thanh toán
-}
-
-export class OrderItemDto {
-  id?: number; // ID của sản phẩm (nếu có)
-  orderId: number; // ID của đơn hàng (nếu có)
-  unitPrice: number; // Giá đơn vị của sản phẩm
-  subtotal: number; // Tổng giá của sản phẩm (quantity * unitPrice)
-  productId: number;
-  quantity: number;
-  price: number;
-}
-export enum OrderStatus {
-  ORDERED = 'ORDERED', // Đã đặt hàng
-  PROCESSING = 'PROCESSING', // Chờ chuyển phát
-  SHIPPED = 'SHIPPED', // Đang trung chuyển
-  DELIVERED = 'DELIVERED', // Đã giao
-  CANCELED = 'CANCELED', // Đã hủy
-}
-export enum PaymentStatus {
-  PENDING = 'PENDING', // Đang chờ thanh toán
-  COMPLETED = 'COMPLETED', // Đã thanh toán
-  FAILED = 'FAILED', // Thanh toán thất bại
-  CANCELED = 'CANCELED', // Đã hủy thanh toán
-}
-
-export enum PaymentMethod {
-  COD = 'COD', // Thanh toán khi nhận hàng
-  BANK_TRANSFER = 'BANK_TRANSFER', // Chuyển khoản ngân hàng
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => PaymentDto)
+  payment?: PaymentDto;
 }

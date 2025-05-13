@@ -1,17 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDTO } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Order, OrderStatus } from '@prisma/client';
+import {
+  Order,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
-  async create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateOrderDTO) {
     const { items, payment, ...orderData } = createOrderDto;
     const order = await this.prisma.order.create({
       data: {
         ...orderData,
+        status: OrderStatus.ORDERED,
+
         items: {
           create: items.map((item) => ({
             productId: item.productId,
@@ -20,11 +27,27 @@ export class OrdersService {
             product: { connect: { id: item.productId } }, // Ensure `product` is connected
           })),
         },
-        payment: {
-          create: payment,
-        },
+      },
+
+      include: {
+        items: true,
       },
     });
+    //CREATE PAYMENT AFTER CREATE ORDER
+    if (payment) {
+      await this.prisma.payment.create({
+        data: {
+          method: payment.method as PaymentMethod,
+          status: payment.status as PaymentStatus,
+          isPaid: payment.isPaid,
+          bankName: payment.bankName,
+          payerName: payment.payerName,
+          transactionId: payment.transactionId,
+          orderId: order.id, // Gắn với đơn hàng đã tạo
+        },
+      });
+    }
+
     return order;
   }
   async update(id: number, updateOrderDto: UpdateOrderDto) {
@@ -40,7 +63,7 @@ export class OrdersService {
     const updatedOrder = await this.prisma.order.update({
       where: { id },
       data: {
-        status: status,
+        ...orderData,
       },
     });
 

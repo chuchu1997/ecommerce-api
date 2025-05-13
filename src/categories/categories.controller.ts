@@ -33,8 +33,9 @@ export class CategoriesController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const categoryId = Number(id); // Chuyển từ string sang number
-    return await this.categoriesService.findOne(categoryId);
+    const categoryID = new UtilsService().IdStringToNumber(id);
+
+    return await this.categoriesService.findOne(categoryID);
   }
 
   @Patch(':id')
@@ -42,9 +43,9 @@ export class CategoriesController {
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    const categoryId = Number(id); // Chuyển từ string sang number
+    const categoryID = new UtilsService().IdStringToNumber(id);
     const category = await this.categoriesService.update(
-      categoryId,
+      categoryID,
       updateCategoryDto,
     );
     return { message: '✅✅ Cập nhật danh mục thành công ✅✅', category };
@@ -52,8 +53,8 @@ export class CategoriesController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const categoryId = Number(id); // Chuyển từ string sang number
-    const category = await this.categoriesService.remove(categoryId);
+    const categoryID = new UtilsService().IdStringToNumber(id);
+    const category = await this.categoriesService.remove(categoryID);
     return { message: '✅✅ Xóa danh mục thành công ✅✅', category };
   }
 }

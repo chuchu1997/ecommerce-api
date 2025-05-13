@@ -9,9 +9,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDTO } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { Or } from '@prisma/client/runtime/library';
+
 import { OrderFilterDto } from './dto/order-filter.dto';
 
 @Controller('orders')
@@ -19,7 +19,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDTO) {
     return this.ordersService.create(createOrderDto);
   }
 
@@ -37,7 +37,8 @@ export class OrdersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+    const orderID = new UtilsService().IdStringToNumber(id);
+    return this.ordersService.findOne(orderID);
   }
 
   @Patch(':id')
@@ -46,9 +47,10 @@ export class OrdersController {
     @Body() updateOrderDto: UpdateOrderDto,
   ) {
     // return this.ordersService.update(+id, updateOrderDto);
-    const orderId = Number(id); // Chuyển từ string sang number
+    const orderID = new UtilsService().IdStringToNumber(id);
+
     const orderUpdate = await this.ordersService.update(
-      orderId,
+      orderID,
       updateOrderDto,
     );
     return {
@@ -59,6 +61,7 @@ export class OrdersController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+    const orderID = new UtilsService().IdStringToNumber(id);
+    return this.ordersService.remove(orderID);
   }
 }

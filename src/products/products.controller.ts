@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -42,11 +41,9 @@ export class ProductsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const productId = this.productsService.convertProductIDStringToNumber(id);
-    if (isNaN(productId)) {
-      throw new BadRequestException('ID phải là một số hợp lệ');
-    }
-    const product = await this.productsService.findOne(productId);
+    const productID = new UtilsService().IdStringToNumber(id);
+
+    const product = await this.productsService.findOne(productID);
     return {
       message: '✅✅ Sản phẩm tìm được thông qua ID ✅✅',
       product,
@@ -58,12 +55,10 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    const productId = this.productsService.convertProductIDStringToNumber(id);
-    if (isNaN(productId)) {
-      throw new BadRequestException('⚠️⚠️ ID phải là một số hợp lệ ⚠️⚠️');
-    }
+    const productID = new UtilsService().IdStringToNumber(id);
+
     const product = await this.productsService.update(
-      productId,
+      productID,
       updateProductDto,
     );
     return {
@@ -74,11 +69,8 @@ export class ProductsController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const productId = this.productsService.convertProductIDStringToNumber(id);
-    if (isNaN(productId)) {
-      throw new BadRequestException('⚠️⚠️ ID phải là một số hợp lệ ⚠️⚠️');
-    }
-    const product = await this.productsService.remove(productId);
+    const productID = new UtilsService().IdStringToNumber(id);
+    const product = await this.productsService.remove(productID);
     return {
       message: `✅✅ Sản phẩm với ID:${product.id} đã được xóa  ✅✅`,
       product,
