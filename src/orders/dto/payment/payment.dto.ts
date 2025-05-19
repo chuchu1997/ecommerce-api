@@ -35,6 +35,10 @@ export class PaymentDto {
   @IsString()
   bankName?: string;
 
+  @IsOptional()
+  @IsString()
+  transactionId
+
   // Người chuyển khoản
   @IsOptional()
   @IsString()
