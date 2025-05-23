@@ -19,13 +19,13 @@ import { APP_GUARD } from '@nestjs/core';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AuthModule,
+    UsersModule,
     ProductsModule,
     UploadModule,
     CategoriesModule,
     OrdersModule,
     BannerModule,
-    AuthModule,
-    UsersModule,
   ],
   controllers: [AppController],
   providers: [
