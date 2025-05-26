@@ -20,21 +20,25 @@ import { LoginDTO } from './dto/login.dto';
 import { Public } from './decorators/public.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LocalAuthGuard } from './guards/local.guard';
-
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { MyLogger } from 'src/utils/logger.service';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
+// @SkipThrottle()
 @Controller('auth')
 export class AuthController {
-  private readonly logger = new Logger(AuthController.name);
-
-  constructor(private readonly authService: AuthService) {}
-
+  constructor(
+    private readonly authService: AuthService,
+    private readonly logger: MyLogger,
+  ) {}
+  @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req): Promise<any> {
-    console.log('AA');
     return {
-      message: 'Đăng nhập thành công ',
+      message: '✅ Đăng nhập thành công ✅',
       user: req.user,
-      token: this.authService.generateAccessToken(req.user), // nếu có JWT
+      accessToken: await this.authService.generateAccessToken(req.user), // nếu có JWT
     };
     // return await this.authService.validateUser(email, password);
   }
@@ -42,6 +46,37 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    return {
+      message: '✅ Đăng ký thành công ✅',
+      accessToken: await this.authService.register(registerDto),
+    };
+  }
+
+  @SkipThrottle()
+  @Get('profile')
+  getProfile(@Request() req) {
+    // req.user chính là payload hoặc user bạn return trong validate()
+    return {
+      message: '✅ Đây là thông tin của user ✅',
+      user: req.user,
+    };
+  }
+  @Public()
+  @Post('forgot')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return {
+      message: `✅ Đã gửi link lấy lại mật khẩu ở Email ${forgotPasswordDto.email} ✅`,
+
+      newPassword: await this.authService.forgotPassword(forgotPasswordDto),
+    };
+  }
+
+  @Public()
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(resetPasswordDto);
+    return {
+      message: '✅ Đã lấy lại mật khẩu thành công  ✅',
+    };
   }
 }

@@ -12,6 +12,7 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryFilterDto } from './dto/product-query-filter.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('products')
 // @UseFilters(AllExceptionsFilter)
@@ -27,15 +28,19 @@ export class ProductsController {
     };
   }
 
+  @Public()
   @Get()
   async findAll(
     @Query()
     query: ProductQueryFilterDto,
   ) {
-    const products = await this.productsService.findProductsWithQuery(query);
+    // const products = await this.productsService.findProductsWithQuery(query);
+    // return {
+    //   message: '✅✅ Tìm kiếm sản phẩm thành công ✅✅',
+    //   products,
+    // };
     return {
-      message: '✅✅ Tìm kiếm sản phẩm thành công ✅✅',
-      products,
+      message: 'TIM KIEM THANH CONG ',
     };
   }
 

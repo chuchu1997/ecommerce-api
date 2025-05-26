@@ -10,7 +10,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super({
       usernameField: 'email', // Make sure this matches your DTO
       passwordField: 'password', // Make sure this matches your DTO
-      passReqToCallback: true,
     });
     this.logger.debug('LocalStrategy initialized');
   }

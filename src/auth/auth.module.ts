@@ -9,6 +9,8 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MyLogger } from 'src/utils/logger.service';
+import { EmailService } from 'src/utils/email.service';
 
 @Module({
   imports: [
@@ -31,9 +33,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   providers: [
     AuthService,
     UsersService,
+    MyLogger,
     PrismaService,
     LocalStrategy,
     JwtStrategy,
+    EmailService,
   ],
   exports: [AuthService], // Đảm bảo export để sử dụng trong các module khác
 })

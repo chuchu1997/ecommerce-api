@@ -15,86 +15,15 @@ datasource db {
   relationMode = "prisma"
 }
 
-//BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ COLOR SẼ ĐƯỢC XÓA THEO)
-model ProductColor {
-  id         Int      @id @default(autoincrement())
-  productId  Int
-  product    Product  @relation(fields: [productId], references: [id])
-  hex       String
-  price      Float
-  stock      Int
-
-  @@index([productId])
-
-}
-//BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ SIZE SẼ ĐƯỢC XÓA THEO)
-model ProductSize {
-  id         Int      @id @default(autoincrement())
-  productId  Int
-  product    Product  @relation(fields: [productId], references: [id])
-  price      Float
-  stock      Int
-  @@index([productId])
-
-}
+// =============================================================================
+// ENUMS - Defined at the top for better organization
+// =============================================================================
 enum Role {
   ADMIN     /// Quản trị viên
   CUSTOMER  /// Khách hàng
   SELLER    /// Người bán hàng
 }
 
-model Payment {
-  id               Int           @id @default(autoincrement())
-  method           PaymentMethod
-  status           PaymentStatus @default(PENDING)
-  isPaid           Boolean       @default(false)
-
-  // Thông tin chuyển khoản
-  bankName         String?       // Tên ngân hàng (nếu chuyển khoản)
-  payerName        String?       // Tên người chuyển
-  transactionId    String?       // Mã giao dịch
-
-  // Khóa ngoại liên kết với đơn hàng
-  orderId          Int           @unique
-  order            Order         @relation(fields: [orderId], references: [id])
-
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-}
-
-model Order {
-  id              Int           @id @default(autoincrement())
-  user          User          @relation(fields: [userId], references: [id])
-  userId        Int
-  // address () // SAU NÀY BỔ SUNG THÊM PHẦN ĐỊA CHỈ 
-
-  // Liên kết với bảng OrderItem
-  total         Float         /// Tổng tiền
-
-  status          OrderStatus   @default(ORDERED) //Default status là ORDERED (Đã đặt hàng !!!)
-  items           OrderItem[]
-  payment Payment?
-
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  
- 
-
-  @@index([userId])
-}
-model OrderItem {
-  id        Int      @id @default(autoincrement())
-  quantity  Int      @default(1)
-  unitPrice Float
-  subtotal  Float    @default(0)
-  productId Int
-  orderId   Int
-  product   Product  @relation(fields: [productId], references: [id])
-  order     Order    @relation(fields: [orderId], references: [id])
-
-  @@index([productId])
-  @@index([orderId])
-}
 enum OrderStatus {
   ORDERED           // Đã đặt hàng
   AWAITING_SHIPMENT // Chờ chuyển phát
@@ -102,70 +31,6 @@ enum OrderStatus {
   DELIVERED         // Đã giao đơn hàng
   CANCELED          // Đã hủy
 }
-model User {
-  id          Int           @id @default(autoincrement())
-  email       String     @unique   /// Email đăng nhập
-  password    String                /// Mật khẩu đã hash
-  name        String                /// Tên người dùng
-  phone       String               /// Số điện thoại (tùy chọn)
-  addresses   String             /// Danh sách địa chỉ giao hàng
-  orders      Order[]               /// Đơn hàng đã đặt
-  cart        Cart?                 /// Giỏ hàng hiện tại
-  wishlist    Wishlist?             /// Danh sách yêu thích
-  reviews     Review[]              /// Các đánh giá sản phẩm
-  role        Role       @default(CUSTOMER) /// Vai trò người dùng
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-}
-model Cart { 
-  id          Int           @id @default(autoincrement())
-    user      User       @relation(fields: [userId], references: [id])
-    userId Int @unique
-    items CartItem[]
-}
-model CartItem {
-  id          Int           @id @default(autoincrement())
-  cart      Cart     @relation(fields: [cartId], references: [id])
-  cartId    Int
-  productId Int
-  quantity  Int      /// Số lượng đặt
-  @@index([cartId])
-}
-
-model Review {
-  id         Int           @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  product   Product  @relation(fields: [productId], references: [id])
-  productId Int
-  rating    Int      /// Điểm đánh giá (1-5)
-  comment   String?  /// Nhận xét (tùy chọn)
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([productId])
-}
-
-model Wishlist { 
-  id         Int           @id @default(autoincrement())
-  user      User       @relation(fields: [userId], references: [id])
-  userId    Int     @unique
-  items WishlistItem[]
-
-}
-model WishlistItem  {
-    id         Int           @id @default(autoincrement())
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
-  wishlistId Int
-  productId  Int
-  addedAt    DateTime @default(now())
-
-
-  @@index([wishlistId])
-}
-
-
 
 enum PaymentMethod {
   COD              // Thanh toán khi nhận hàng
@@ -177,12 +42,62 @@ enum PaymentStatus {
   FAILED       // Thanh toán thất bại
   CANCELED     // Đã hủy thanh toán
 }
+
+// =============================================================================
+// USER MANAGEMENT
+// =============================================================================
+
+model User {
+  id          Int           @id @default(autoincrement())
+  email       String     @unique   /// Email đăng nhập
+  password    String                /// Mật khẩu đã hash
+  name        String                /// Tên người dùng
+  phone       String               /// Số điện thoại (tùy chọn)
+  address   String             /// Danh sách địa chỉ giao hàng
+  avatar    String?             ///AVATAR
+  orders      Order[]               /// Đơn hàng đã đặt
+  cart        Cart?                 /// Giỏ hàng hiện tại
+  wishlist    Wishlist?             /// Danh sách yêu thích
+  reviews     Review[]              /// Các đánh giá sản phẩm
+  role        Role       @default(CUSTOMER) /// Vai trò người dùng
+    
+  resetToken String? @unique
+  resetTokenExpiry DateTime?
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+
+}
+
+// =============================================================================
+// PRODUCT MANAGEMENT
+// =============================================================================
+
 model Brand  {
     id          Int          @id @default(autoincrement())
     name String @unique
     products Product[] //Danh sách các sản phẩm thuộc Brand này  
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String
+  parentId    Int?
+  imageBillboard String 
+  subCategories Category[] @relation("SubCategory")
+  parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products    Product[]
+  seo           SEO?      @relation("CategoryToSEO")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([parentId])
 
 }
+
 model Product {
   id          Int          @id @default(autoincrement())
   name        String @unique
@@ -217,6 +132,156 @@ model Product {
   @@index([brandId])
 
 }
+//BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ COLOR SẼ ĐƯỢC XÓA THEO)
+model ProductColor {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  hex       String
+  price      Float
+  stock      Int
+
+  @@index([productId])
+
+}
+//BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ SIZE SẼ ĐƯỢC XÓA THEO)
+model ProductSize {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  price      Float
+  stock      Int
+  @@index([productId])
+
+}
+
+
+
+// =============================================================================
+// ORDER MANAGEMENT
+// =============================================================================
+
+
+model Order {
+  id              Int           @id @default(autoincrement())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        Int
+  // address () // SAU NÀY BỔ SUNG THÊM PHẦN ĐỊA CHỈ 
+
+  // Liên kết với bảng OrderItem
+  total         Float         /// Tổng tiền
+
+  status          OrderStatus   @default(ORDERED) //Default status là ORDERED (Đã đặt hàng !!!)
+  items           OrderItem[]
+  payment Payment?
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+ 
+
+  @@index([userId])
+}
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int      @default(1)
+  unitPrice Float
+  subtotal  Float    @default(0)
+  productId Int
+  orderId   Int
+  product   Product  @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+
+  @@index([productId])
+  @@index([orderId])
+}
+
+model Payment {
+  id               Int           @id @default(autoincrement())
+  method           PaymentMethod
+  status           PaymentStatus @default(PENDING)
+  isPaid           Boolean       @default(false)
+
+  // Thông tin chuyển khoản
+  bankName         String?       // Tên ngân hàng (nếu chuyển khoản)
+  payerName        String?       // Tên người chuyển
+  transactionId    String?       // Mã giao dịch
+
+  // Khóa ngoại liên kết với đơn hàng
+  orderId          Int           @unique
+  order            Order         @relation(fields: [orderId], references: [id])
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+
+// =============================================================================
+// SHOPPING CART
+// =============================================================================
+
+model Cart { 
+  id          Int           @id @default(autoincrement())
+    user      User       @relation(fields: [userId], references: [id])
+    userId Int @unique
+    items CartItem[]
+}
+model CartItem {
+  id          Int           @id @default(autoincrement())
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    Int
+  productId Int
+  quantity  Int      /// Số lượng đặt
+  @@index([cartId])
+}
+
+
+// =============================================================================
+// WISHLIST
+// =============================================================================
+model Wishlist { 
+  id         Int           @id @default(autoincrement())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    Int     @unique
+  items WishlistItem[]
+
+}
+model WishlistItem  {
+    id         Int           @id @default(autoincrement())
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlistId Int
+  productId  Int
+  addedAt    DateTime @default(now())
+
+
+  @@index([wishlistId])
+}
+
+
+// =============================================================================
+// REVIEWS
+// =============================================================================
+
+model Review {
+  id         Int           @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  rating    Int      /// Điểm đánh giá (1-5)
+  comment   String?  /// Nhận xét (tùy chọn)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([productId])
+}
+
+
+
+
+// =============================================================================
+// CMS & SEO
+// =============================================================================
 
 model Banner {
   id        Int      @id @default(autoincrement())
@@ -228,23 +293,6 @@ model Banner {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-model Category {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  slug        String    @unique
-  description String
-  parentId    Int?
-  imageBillboard String 
-  subCategories Category[] @relation("SubCategory")
-  parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  products    Product[]
-  seo           SEO?      @relation("CategoryToSEO")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([parentId])
-
 }
 
 model SEO {
