@@ -16,7 +16,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   async validate(email: string, password: string) {
     this.logger.debug(`LocalStrategy validate called with username: ${email}`);
 
-    console.log('CALL VALIDATE IN LOCAL STRATEGY !!!');
     const user = await this.authService.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException();

@@ -34,10 +34,11 @@ export class AuthController {
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
+  @HttpCode(200)
   async login(@Request() req): Promise<any> {
     return {
       message: '✅ Đăng nhập thành công ✅',
-      user: req.user,
+      // user: req.user,
       accessToken: await this.authService.generateAccessToken(req.user), // nếu có JWT
     };
     // return await this.authService.validateUser(email, password);

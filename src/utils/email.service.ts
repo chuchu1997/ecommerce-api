@@ -9,15 +9,15 @@ export class EmailService {
   private logger: MyLogger;
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransporter({
-      host: this.configService.get('SMTP_HOST'),
-      port: parseInt(this.configService.get('SMTP_PORT') ?? ''),
-      secure: this.configService.get('SMTP_PORT') === '465', // true for 465, false for other ports
-      auth: {
-        user: this.configService.get('SMTP_USER'),
-        pass: this.configService.get('SMTP_PASS'),
-      },
-    });
+    // this.transporter = nodemailer.createTransporter({
+    //   host: this.configService.get('SMTP_HOST'),
+    //   port: parseInt(this.configService.get('SMTP_PORT') ?? ''),
+    //   secure: this.configService.get('SMTP_PORT') === '465', // true for 465, false for other ports
+    //   auth: {
+    //     user: this.configService.get('SMTP_USER'),
+    //     pass: this.configService.get('SMTP_PASS'),
+    //   },
+    // });
   }
   async sendResetLinkToEmail(
     email: string,
