@@ -7,6 +7,7 @@ import {
   MaxLength,
   Matches,
   ValidateNested,
+  IsNumber,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { SEODto } from 'src/utils/seo.dto';
@@ -35,6 +36,12 @@ export class CreateCategoryDto {
     return value;
   })
   slug: string;
+
+  // Store ID
+  @IsNumber()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseFloat(value))
+  storeId: number;
 
   @IsOptional()
   @ValidateNested({ each: true })

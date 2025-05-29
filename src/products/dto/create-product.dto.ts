@@ -36,6 +36,12 @@ export class CreateProductDto {
   @Min(0, { message: 'Giá không được âm' })
   @Transform(({ value }) => parseFloat(value))
   price: number;
+
+  // Store ID
+  @IsNumber()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseFloat(value))
+  storeId: number;
   // Trạng thái nổi bật (featured) của sản phẩm
 
   @IsBoolean()

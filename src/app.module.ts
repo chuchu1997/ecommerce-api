@@ -15,6 +15,8 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { MyLogger } from './utils/logger.service';
+import { StoresModule } from './stores/stores.module';
+import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { MyLogger } from './utils/logger.service';
     CategoriesModule,
     OrdersModule,
     BannerModule,
+    StoresModule,
   ],
   controllers: [AppController],
   providers: [
@@ -45,6 +48,10 @@ import { MyLogger } from './utils/logger.service';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard, // Global roles guard
     },
     AppService,
     MyLogger,

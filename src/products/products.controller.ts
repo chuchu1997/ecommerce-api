@@ -13,12 +13,16 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryFilterDto } from './dto/product-query-filter.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('products')
 // @UseFilters(AllExceptionsFilter)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  //CHI ADMIN CO QUYEN TAO MOI SAN PHAM
+  @Roles(Role.ADMIN)
   @Post()
   async create(@Body() createProductDto: CreateProductDto) {
     const product = await this.productsService.create(createProductDto);
@@ -28,7 +32,7 @@ export class ProductsController {
     };
   }
 
-  @Public()
+  // @Roles(Role.CUSTOMER)
   @Get()
   async findAll(
     @Query()
@@ -54,7 +58,8 @@ export class ProductsController {
       product,
     };
   }
-
+  //CHI ADMIN CO QUYEN CHINH SUA
+  @Roles(Role.ADMIN)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -71,7 +76,8 @@ export class ProductsController {
       product,
     };
   }
-
+  //CHI ADMIN CO QUYEN DELETE
+  @Roles(Role.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const productID = new UtilsService().IdStringToNumber(id);

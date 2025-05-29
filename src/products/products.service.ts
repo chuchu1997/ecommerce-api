@@ -20,7 +20,7 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const { images, sizes, colors, seo, ...data } = createProductDto;
+    const { images, sizes, colors, seo, storeId, ...data } = createProductDto;
 
     const product = await this.prisma.product.create({
       data: {
@@ -34,7 +34,7 @@ export class ProductsService {
             },
           },
         }),
-
+        storeId: storeId,
         name: data.name,
         description: data.description,
         price: data.price,
