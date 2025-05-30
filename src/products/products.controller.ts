@@ -38,25 +38,26 @@ export class ProductsController {
     @Query()
     query: ProductQueryFilterDto,
   ) {
-    // const products = await this.productsService.findProductsWithQuery(query);
-    // return {
-    //   message: '✅✅ Tìm kiếm sản phẩm thành công ✅✅',
-    //   products,
-    // };
     return {
-      message: 'TIM KIEM THANH CONG ',
+      message: '✅✅ Tìm kiếm sản phẩm thành công ✅✅',
+      products: await this.productsService.findProductsWithQuery(query),
+      total: await this.productsService.getTotalProducts(),
     };
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const productID = new UtilsService().IdStringToNumber(id);
-
-    const product = await this.productsService.findOne(productID);
+  @Get(':slug')
+  async findOne(@Param('slug') slug: string) {
     return {
-      message: '✅✅ Sản phẩm tìm được thông qua ID ✅✅',
-      product,
+      message: '✅✅ Tìm kiếm sản phẩm thành công ✅✅',
+      product: await this.productsService.getProductBySlug(slug),
     };
+    // const productID = new UtilsService().IdStringToNumber(id);
+
+    // const product = await this.productsService.findOne(productID);
+    // return {
+    //   message: '✅✅ Sản phẩm tìm được thông qua ID ✅✅',
+    //   product,
+    // };
   }
   //CHI ADMIN CO QUYEN CHINH SUA
   @Roles(Role.ADMIN)

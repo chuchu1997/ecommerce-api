@@ -5,15 +5,17 @@ import { Transform } from 'class-transformer';
  * DTO for order filter parameters
  */
 export class ProductQueryFilterDto {
-  @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value, 10))
-  page?: number;
+  storeID: number;
 
-  @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value, 10))
-  limit?: number;
+  currentPage: number;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  limit: number;
 
   @IsOptional()
   @IsString()

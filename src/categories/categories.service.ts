@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/prisma.service';
+import { CategoryQueryFilterDto } from './dto/category-query-filter.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -15,7 +16,9 @@ export class CategoriesService {
       where: { slug: data.slug },
     });
     if (existingCategory) {
-      throw new BadRequestException('⚠️⚠️⚠️ Slug đã tồn tại ⚠️⚠️⚠️');
+      throw new BadRequestException(
+        '⚠️⚠️⚠️ Slug Category này đã tồn tại ⚠️⚠️⚠️',
+      );
     }
     const category = await this.prisma.category.create({
       data: {
@@ -33,20 +36,22 @@ export class CategoriesService {
     return category;
   }
 
-  async findAll(query: { justGetParent?: string }) {
+  async findAll(query: CategoryQueryFilterDto) {
     //Chỉ lấy ra các categories cha !!!
-    const { justGetParent = 'false' } = query;
-    console.log('JUST', justGetParent);
+    const { justGetParent = false, storeID } = query;
+
     const categories = await this.prisma.category.findMany({
       where: {
-        parentId: justGetParent === 'true' ? null : undefined, // Lấy các category có parentId là null (các category cha)
+        storeId: storeID,
+        parentId: justGetParent ? null : undefined,
+        // parentId: justGetParent === 'true' ? null : undefined, // Lấy các category có parentId là null (các category cha)
       },
       include: {
         subCategories: true, // Lấy cấp con đầu tiên
       },
-      orderBy: {
-        createdAt: 'desc', // Sắp xếp theo thời gian tạo (có thể tùy chỉnh)
-      },
+      // orderBy: {
+      //   createdAt: 'desc', // Sắp xếp theo thời gian tạo (có thể tùy chỉnh)
+      // },
     });
     // Đệ quy lấy các cấp con của từng category
     for (const category of categories) {
@@ -97,7 +102,7 @@ export class CategoriesService {
     }
     // Cập nhật danh mục
     const category = await this.prisma.category.update({
-      where: { id },
+      where: { id, storeId: data.storeId },
       data: {
         ...data,
         ...(seo && {
@@ -116,10 +121,13 @@ export class CategoriesService {
     // await return `This action updates a #${id} category`;
   }
 
-  async remove(id: number) {
+  async remove(id: number, storeID: number) {
     // Xóa danh mục
     const category = await this.prisma.category.delete({
-      where: { id },
+      where: {
+        id,
+        storeId: storeID,
+      },
     });
 
     return category;

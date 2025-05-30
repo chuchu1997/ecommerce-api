@@ -74,15 +74,25 @@ export class ProductsService {
 
     return product;
   }
-
+  async getTotalProducts() {
+    return await this.prisma.product.count();
+  }
+  async getProductBySlug(slug: string) {
+    return await this.prisma.product.findUnique({
+      where: {
+        slug: slug,
+      },
+    });
+  }
   async findProductsWithQuery(query: ProductQueryFilterDto) {
-    const { limit = 4, page = 1, ...data } = query;
+    const { ...data } = query;
 
     const products = await this.prisma.product.findMany({
       where: {
         slug: data.slug,
         categoryId: data.categoryId,
-        isFeatured: data.isFeatured ? true : undefined,
+        isFeatured: data.isFeatured ? true : false,
+        storeId: data.storeID,
       },
       include: {
         images: true,
@@ -93,8 +103,8 @@ export class ProductsService {
       orderBy: {
         createdAt: 'desc',
       },
-      take: Number(limit) || 4, // Đảm bảo kiểu số và giá trị mặc định
-      skip: (Number(page) - 1) * (Number(limit) || 4), // Đảm bảo kiểu số và giá trị mặc định
+      take: data.limit, // Đảm bảo kiểu số và giá trị mặc định
+      skip: (data.currentPage - 1) * data.limit, // Đảm bảo kiểu số và giá trị mặc định
     });
 
     return products;

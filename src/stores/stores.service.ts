@@ -32,18 +32,6 @@ export class StoresService {
         userID: userID,
       },
     });
-
-    //   console.log('USER ID', userID);
-    // return [];
-
-    // let user = await this.userService.findUserByID(userID);
-    // if (user) {
-    //   return await this.prisma.store.findMany({
-    //     where: {
-    //       userID: userID,
-    //     },
-    //   });
-    // }
   }
 
   async findOne(id: number, userId: number) {

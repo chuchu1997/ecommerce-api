@@ -26,7 +26,7 @@ export class StoresController {
   @Post()
   async create(@Body() createStoreDto: CreateStoreDto) {
     return {
-      message: '✅✅ Tạo Store Thành Công  ✅✅',
+      message: ' Tạo Store Thành Công  ✅',
       store: await this.storesService.create(createStoreDto),
     };
 
@@ -43,19 +43,19 @@ export class StoresController {
     @Param('id', ParseIntPipe) id: number,
     @Query('userID', ParseIntPipe) userID: number,
   ) {
-    console.log('CALL NE !!', userID);
     return {
-      message: '✅✅ Tìm thấy Store  ✅✅',
+      message: ' Tìm thấy Store  ✅',
       store: await this.storesService.findOne(id, userID),
     };
   }
 
   // LẤY TẤT CẢ STORES THUỘC USER ID !!!!
   @Roles(Role.ADMIN)
+  @HttpCode(200)
   @Get('user/:userId')
   async findAllStoreByUserId(@Param('userId', ParseIntPipe) userId: number) {
     return {
-      message: 'TAT CA STORE THUOC VE USER NAY !!',
+      message: 'Tất cả store thuộc về User Này ✅',
       stores: await this.storesService.findAllStoresWithUserID(userId),
     };
   }
