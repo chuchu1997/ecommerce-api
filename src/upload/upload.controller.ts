@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  HttpCode,
   Param,
   Post,
   Query,
@@ -11,12 +12,16 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
+import { Role } from '@prisma/client';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('')
+  @HttpCode(200)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
     if (!files || files.length === 0) {
@@ -31,7 +36,8 @@ export class UploadController {
         mimetypes,
         originalFilenames,
       });
-      return { message: 'Đã tải hình lên thành công !!', images };
+
+      return { message: 'Đã tải hình lên thành công !!', imageUrls: images };
     } catch (error) {
       throw new BadRequestException(`Upload failed: ${error.message}`);
     }
