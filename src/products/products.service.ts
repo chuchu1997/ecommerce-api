@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -11,87 +12,101 @@ import { UploadService } from 'src/upload/upload.service';
 import { ProductColorDto } from './dto/product-color/product-color.dto';
 import { ProductSizeDto } from './dto/product-size/product-size.dto';
 import { ProductQueryFilterDto } from './dto/product-query-filter.dto';
+import { MyLogger } from 'src/utils/logger.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private uploadService: UploadService,
+
+    private logger: MyLogger,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
     const { images, sizes, colors, seo, storeId, ...data } = createProductDto;
-
-    const product = await this.prisma.product.create({
-      data: {
-        ...data,
-        // Nếu có SEO thì tiến hành tạo mới
-        // Phải tạo kiểu này vì SEO có relation với PRODUCT !!!
-        ...(seo && {
-          seo: {
-            create: {
-              ...seo,
-            },
-          },
-        }),
-        storeId: storeId,
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        isFeatured: data.isFeatured ?? false,
-        sku: data.sku ?? undefined,
-        slug: data.slug,
-        ...(colors &&
-          colors.length > 0 && {
-            colors: {
-              createMany: {
-                data: colors.map((color: ProductColorDto) => ({
-                  ...color,
-                  price: color.price ?? 0,
-                })),
+    try {
+      const product = await this.prisma.product.create({
+        data: {
+          ...data,
+          // Nếu có SEO thì tiến hành tạo mới
+          // Phải tạo kiểu này vì SEO có relation với PRODUCT !!!
+          ...(seo && {
+            seo: {
+              create: {
+                ...seo,
               },
             },
           }),
-        ...(sizes &&
-          sizes.length > 0 && {
-            sizes: {
-              createMany: {
-                data: sizes.map((size: ProductSizeDto) => ({
-                  ...size,
-                  price: size.price ?? 0,
-                })),
+          storeId: storeId,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          isFeatured: data.isFeatured ?? false,
+          sku: data.sku ?? undefined,
+          slug: data.slug,
+          ...(colors &&
+            colors.length > 0 && {
+              colors: {
+                createMany: {
+                  data: colors.map((color: ProductColorDto) => ({
+                    ...color,
+                    price: color.price ?? 0,
+                  })),
+                },
               },
-            },
-          }),
+            }),
+          ...(sizes &&
+            sizes.length > 0 && {
+              sizes: {
+                createMany: {
+                  data: sizes.map((size: ProductSizeDto) => ({
+                    ...size,
+                    price: size.price ?? 0,
+                  })),
+                },
+              },
+            }),
 
-        images: {
-          createMany: {
-            data: [...images.map((image: { url: string }) => image)],
+          images: {
+            createMany: {
+              data: images,
+            },
           },
         },
-      },
-    });
-
-    return product;
+      });
+      this.logger.debug(`Đã tạo product ${product.name}`);
+      return product;
+    } catch (err) {
+      this.logger.error(`Lỗi Tạo Product , Message ${err}`);
+    }
   }
   async getTotalProducts() {
     return await this.prisma.product.count();
   }
   async getProductBySlug(slug: string) {
-    return await this.prisma.product.findUnique({
+    const product = await this.prisma.product.findUnique({
       where: {
         slug: slug,
       },
+      include: {
+        images: true,
+        // category: true,
+        colors: true,
+        sizes: true,
+      },
     });
+
+    return product;
   }
   async findProductsWithQuery(query: ProductQueryFilterDto) {
-    const { ...data } = query;
+    const { limit = 4, currentPage = 1, ...data } = query;
 
     const products = await this.prisma.product.findMany({
       where: {
         slug: data.slug,
         categoryId: data.categoryId,
-        isFeatured: data.isFeatured ? true : false,
+        isFeatured: data.isFeatured ? true : undefined,
         storeId: data.storeID,
       },
       include: {
@@ -103,8 +118,8 @@ export class ProductsService {
       orderBy: {
         createdAt: 'desc',
       },
-      take: data.limit, // Đảm bảo kiểu số và giá trị mặc định
-      skip: (data.currentPage - 1) * data.limit, // Đảm bảo kiểu số và giá trị mặc định
+      take: limit, // Đảm bảo kiểu số và giá trị mặc định
+      skip: (currentPage - 1) * limit, // Đảm bảo kiểu số và giá trị mặc định
     });
 
     return products;
@@ -218,9 +233,6 @@ export class ProductsService {
       },
     });
     return product;
-  }
-  convertProductIDStringToNumber(id: string) {
-    return parseInt(id, 10);
   }
 
   async remove(id: number) {

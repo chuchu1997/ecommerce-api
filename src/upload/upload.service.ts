@@ -74,6 +74,7 @@ export class UploadService {
         Bucket: process.env.AWS_S3_BUCKET_NAME!,
         Key: fileKey,
       });
+      console.log('GOI DELETE HINH ANH TREN S3 !!!');
       return await this.s3.send(command);
     } catch (err) {
       throw new BadRequestException(

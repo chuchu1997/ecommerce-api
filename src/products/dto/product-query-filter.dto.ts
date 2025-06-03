@@ -6,15 +6,21 @@ import { Transform } from 'class-transformer';
  */
 export class ProductQueryFilterDto {
   @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) =>
+    value !== undefined ? parseInt(value, 10) : undefined,
+  )
   storeID: number;
 
   @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) =>
+    value !== undefined ? parseInt(value, 10) : undefined,
+  )
   currentPage: number;
 
   @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) =>
+    value !== undefined ? parseInt(value, 10) : undefined,
+  )
   limit: number;
 
   @IsOptional()
@@ -28,6 +34,8 @@ export class ProductQueryFilterDto {
 
   @IsOptional()
   @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) =>
+    value !== undefined ? parseInt(value, 10) : undefined,
+  )
   categoryId?: number; // Filter canceled orders
 }

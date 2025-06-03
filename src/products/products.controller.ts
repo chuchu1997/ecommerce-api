@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  HttpCode,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -26,6 +27,7 @@ export class ProductsController {
 
   //CHI ADMIN CO QUYEN TAO MOI SAN PHAM
   @Roles(Role.ADMIN)
+  @HttpCode(200)
   @Post()
   async create(@Body() createProductDto: CreateProductDto) {
     const product = await this.productsService.create(createProductDto);
@@ -54,13 +56,6 @@ export class ProductsController {
       message: 'Tìm kiếm sản phẩm thành công ✅',
       product: await this.productsService.getProductBySlug(slug),
     };
-    // const productID = new UtilsService().IdStringToNumber(id);
-
-    // const product = await this.productsService.findOne(productID);
-    // return {
-    //   message: '✅✅ Sản phẩm tìm được thông qua ID ✅✅',
-    //   product,
-    // };
   }
   //CHI ADMIN CO QUYEN CHINH SUA
   @Roles(Role.ADMIN)
@@ -69,8 +64,6 @@ export class ProductsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    // const productID = new UtilsService().IdStringToNumber(id);
-
     const product = await this.productsService.update(id, updateProductDto);
     return {
       message: ' Sản phẩm đã được chỉnh sửa ✅',
@@ -79,6 +72,7 @@ export class ProductsController {
   }
   //CHI ADMIN CO QUYEN DELETE
   @Roles(Role.ADMIN)
+  @HttpCode(200)
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     const product = await this.productsService.remove(id);

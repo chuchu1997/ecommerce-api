@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateProductDto } from './create-product.dto';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
@@ -9,6 +9,6 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   @Transform(({ value }) => (isNaN(Number(value)) ? undefined : Number(value)))
   id: number;
 
-  @IsNotEmpty({ message: 'Thời gian Cập nhật  Product không được bỏ trống ' })
+  @IsOptional()
   updatedAt?: string | undefined;
 }
