@@ -206,12 +206,21 @@ export class ProductsService {
                   notIn: colors.map((c) => c.id).filter(Boolean),
                 },
               },
-              upsert: colors.map((color: ProductColorDto) => ({
-                //Kiểm tra xem có màu sắc nào mới không nếu có thì ghi vào DB
-                where: { id: color.id || 0 },
-                create: { ...color, price: color.price ?? 0, productId: id },
-                update: { ...color, price: color.price ?? 0, productId: id },
-              })),
+              upsert: colors.map((color: ProductColorDto) => {
+                const dataColors = {
+                  ...color,
+                  price:
+                    color.price !== undefined && color.price !== null
+                      ? color.price
+                      : (data.price ?? 0),
+                };
+
+                return {
+                  where: { id: color.id || 0 },
+                  create: dataColors,
+                  update: dataColors,
+                };
+              }),
             },
           }),
         ...(sizes &&
@@ -223,11 +232,23 @@ export class ProductsService {
                 },
               },
               // Upsert để cập nhật hoặc tạo mới
-              upsert: sizes.map((size: ProductSizeDto) => ({
-                where: { id: size.id || 0 },
-                create: { ...size, price: size.price ?? 0, productId: id },
-                update: { ...size, price: size.price ?? 0, productId: id },
-              })),
+              upsert: sizes.map((size: ProductSizeDto) => {
+                const dataSizes = {
+                  name: size.name,
+                  stock: size.stock,
+                  price:
+                    size.price !== undefined && size.price !== null
+                      ? size.price
+                      : (data.price ?? 0),
+                  // Add any other required fields here
+                };
+
+                return {
+                  where: { id: size.id || 0 },
+                  create: dataSizes,
+                  update: dataSizes,
+                };
+              }),
             },
           }),
       },

@@ -3,10 +3,9 @@ import { IsInt, IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class ProductColorDto {
   @IsOptional()
-  @IsInt({ message: 'ID của Product Size phải là Number !!! ' })
-  @Transform(({ value }) => parseInt(value, 10))
+  @IsInt({ message: 'ID của Product phải là Number !!! ' })
+  @Transform(({ value }) => (isNaN(Number(value)) ? undefined : Number(value)))
   id: number;
-
   @IsNotEmpty({ message: 'Tên không được để trống!' })
   name: string;
 
@@ -20,7 +19,6 @@ export class ProductColorDto {
 
   @IsOptional()
   @IsNumber({}, { message: 'Giá phải là một số!' })
-  @Min(0, { message: 'Giá phải lớn hơn hoặc bằng 0!' })
   price?: number;
 
   @IsNotEmpty({ message: 'Số lượng không được để trống!' })

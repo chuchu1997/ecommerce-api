@@ -33,6 +33,7 @@ export class CreateProductDto {
 
   // Giá sản phẩm
   @IsNumber()
+  @IsNotEmpty()
   @Min(0, { message: 'Giá không được âm' })
   @Transform(({ value }) => parseFloat(value))
   price: number;

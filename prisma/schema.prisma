@@ -183,6 +183,7 @@ model Product {
 //BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ COLOR SẼ ĐƯỢC XÓA THEO)
 model ProductColor {
   id         Int      @id @default(autoincrement())
+  name       String
   productId  Int
   product    Product  @relation(fields: [productId], references: [id])
   hex       String
@@ -195,6 +196,7 @@ model ProductColor {
 //BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ SIZE SẼ ĐƯỢC XÓA THEO)
 model ProductSize {
   id         Int      @id @default(autoincrement())
+  name       String
   productId  Int
   product    Product  @relation(fields: [productId], references: [id])
   price      Float

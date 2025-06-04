@@ -17,7 +17,6 @@ export class ProductSizeDto {
 
   @IsOptional()
   @IsNumber({}, { message: 'Giá phải là một số!' })
-  @Min(0, { message: 'Giá phải lớn hơn hoặc bằng 0!' })
   price?: number;
 
   @IsNotEmpty({ message: 'Số lượng không được để trống!' })
