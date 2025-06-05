@@ -51,7 +51,7 @@ export class ProductsService {
                 createMany: {
                   data: colors.map((color: ProductColorDto) => ({
                     ...color,
-                    price: color.price ?? 0,
+                    price: color.price ?? data.price,
                   })),
                 },
               },
@@ -62,7 +62,7 @@ export class ProductsService {
                 createMany: {
                   data: sizes.map((size: ProductSizeDto) => ({
                     ...size,
-                    price: size.price ?? 0,
+                    price: size.price ?? data.price,
                   })),
                 },
               },
@@ -81,8 +81,12 @@ export class ProductsService {
       this.logger.error(`Lỗi Tạo Product , Message ${err}`);
     }
   }
-  async getTotalProducts() {
-    return await this.prisma.product.count();
+  async getTotalProducts(storeId: number) {
+    return await this.prisma.product.count({
+      where: {
+        storeId: storeId,
+      },
+    });
   }
   async getProductBySlug(slug: string) {
     const product = await this.prisma.product.findUnique({
@@ -175,85 +179,102 @@ export class ProductsService {
         urlsToDelete.map((url) => this.uploadService.deleteImagesFromS3(url)),
       );
     }
-    const product = await this.prisma.product.update({
-      where: {
-        id,
-      },
-      data: {
-        ...data,
-        ...(seo && {
-          //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
-          seo: {
-            update: {
-              ...seo,
-            },
-          },
-        }),
-        ...(isImagesUpdated && {
-          images: {
-            deleteMany: {}, // Xóa tất cả ảnh cũ trong DB trước khi thêm mới
-            createMany: {
-              data: images.map((image: { url: string }) => image),
-            },
-          },
-        }),
-        ...(colors &&
-          colors.length > 0 && {
-            colors: {
-              deleteMany: {
-                id: {
-                  //Xóa tất cả các color không có trong mảng colors mới được cập nhật bởi User !!!
-                  notIn: colors.map((c) => c.id).filter(Boolean),
-                },
-              },
-              upsert: colors.map((color: ProductColorDto) => {
-                const dataColors = {
-                  ...color,
-                  price:
-                    color.price !== undefined && color.price !== null
-                      ? color.price
-                      : (data.price ?? 0),
-                };
 
-                return {
-                  where: { id: color.id || 0 },
-                  create: dataColors,
-                  update: dataColors,
-                };
-              }),
+    try {
+      const product = await this.prisma.product.update({
+        where: {
+          id,
+        },
+        data: {
+          ...data,
+          ...(seo && {
+            //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
+            seo: {
+              update: {
+                ...seo,
+              },
             },
           }),
-        ...(sizes &&
-          sizes.length > 0 && {
-            sizes: {
-              deleteMany: {
-                id: {
-                  notIn: sizes.map((c) => c.id).filter(Boolean),
-                },
+          ...(isImagesUpdated && {
+            images: {
+              deleteMany: {}, // Xóa tất cả ảnh cũ trong DB trước khi thêm mới
+              createMany: {
+                data: images.map((image: { url: string }) => image),
               },
-              // Upsert để cập nhật hoặc tạo mới
-              upsert: sizes.map((size: ProductSizeDto) => {
-                const dataSizes = {
-                  name: size.name,
-                  stock: size.stock,
-                  price:
-                    size.price !== undefined && size.price !== null
-                      ? size.price
-                      : (data.price ?? 0),
-                  // Add any other required fields here
-                };
-
-                return {
-                  where: { id: size.id || 0 },
-                  create: dataSizes,
-                  update: dataSizes,
-                };
-              }),
             },
           }),
-      },
-    });
-    return product;
+          colors: {
+            deleteMany:
+              colors && colors.length > 0
+                ? {
+                    id: {
+                      notIn: colors
+                        .map((c) => c.id)
+                        .filter(
+                          (id): id is number =>
+                            typeof id === 'number' && id > 0,
+                        ),
+                    },
+                  }
+                : {}, // nếu không có colors, xóa hết tất cả colors liên quan
+
+            upsert:
+              colors && colors.length > 0
+                ? colors.map((color: ProductColorDto) => {
+                    const dataColors = {
+                      ...color,
+                      price:
+                        color.price !== undefined &&
+                        color.price !== null &&
+                        color.price !== 0
+                          ? color.price
+                          : (data.price ?? product.price),
+                    };
+                    return {
+                      where: { id: color.id ?? 0 }, // id = 0 cho tạo mới (nên check id === undefined)
+                      create: dataColors,
+                      update: dataColors,
+                    };
+                  })
+                : [],
+          },
+          sizes: {
+            deleteMany:
+              sizes && sizes.length > 0
+                ? {
+                    id: {
+                      notIn: sizes
+                        .map((c) => c.id)
+                        .filter(
+                          (id): id is number =>
+                            typeof id === 'number' && id > 0,
+                        ),
+                    },
+                  }
+                : {}, // nếu không có colors, xóa hết tất cả colors liên quan
+
+            upsert:
+              sizes && sizes.length > 0
+                ? sizes.map((size: ProductSizeDto) => {
+                    const dataSize = {
+                      name: size.name,
+                      price: size.price ?? product.price,
+                      stock: size.stock ?? 0,
+                    };
+                    return {
+                      where: { id: size.id ?? 0 }, // dùng id nếu có, hoặc 0 (hoặc bạn có logic riêng)
+                      create: dataSize,
+                      update: dataSize,
+                    };
+                  })
+                : [],
+          },
+        },
+      });
+      return product;
+    } catch (err) {
+      console.log('ERR', err);
+    }
   }
 
   async remove(id: number) {

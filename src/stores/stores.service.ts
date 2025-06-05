@@ -43,11 +43,22 @@ export class StoresService {
     });
   }
 
-  update(id: number, updateStoreDto: UpdateStoreDto) {
-    return `This action updates a #${id} store`;
+  async update(id: number, updateStoreDto: UpdateStoreDto) {
+    const { name, description } = updateStoreDto;
+    return await this.prisma.store.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
+        description,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} store`;
+  async remove(id: number) {
+    return await this.prisma.store.delete({
+      where: { id },
+    });
   }
 }

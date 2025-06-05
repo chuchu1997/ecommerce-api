@@ -46,7 +46,7 @@ export class ProductsController {
     return {
       message: ' Tìm kiếm sản phẩm thành công ✅',
       products: await this.productsService.findProductsWithQuery(query),
-      total: await this.productsService.getTotalProducts(),
+      total: await this.productsService.getTotalProducts(query.storeID),
     };
   }
 

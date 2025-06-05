@@ -9,11 +9,6 @@ export class ProductColorDto {
   @IsNotEmpty({ message: 'Tên không được để trống!' })
   name: string;
 
-  @IsNotEmpty({ message: 'ProductID không được để trống!' })
-  @IsInt({ message: 'ID của ProductID phải là một số nguyên!' })
-  @Transform(({ value }) => (isNaN(Number(value)) ? undefined : Number(value)))
-  productId: number;
-
   @IsNotEmpty({ message: 'Hex color không được để trống !' })
   hex: string;
 
