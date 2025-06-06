@@ -38,6 +38,7 @@ export class ProductsController {
   }
 
   // @Roles(Role.CUSTOMER)
+  @Public()
   @Get()
   async findAll(
     @Query()

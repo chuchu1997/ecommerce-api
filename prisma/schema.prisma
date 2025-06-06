@@ -88,6 +88,8 @@ model Store  {
    
 
    news News[] @relation("StoreToNews")
+
+   banners Banner[] @relation("StoreToBanner")
    
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
@@ -99,7 +101,7 @@ model News {
    id          Int          @id @default(autoincrement())
    title String 
    slug String @unique 
-   content   String   @db.Text
+   description   String   @db.Text
    imageUrl     String?  // URL ảnh đại diện của bài viết
    storeId   Int?  // Tin có thể không thuộc store nào (optional)
    createdAt DateTime @default(now())
@@ -340,6 +342,9 @@ model Review {
 
 model Banner {
   id        Int      @id @default(autoincrement())
+  storeId   Int
+  store Store @relation("StoreToBanner",fields: [storeId],references: [id])
+
   imageUrl     String
   link      String?
   title     String?
@@ -348,6 +353,8 @@ model Banner {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([storeId])
 }
 
 model SEO {

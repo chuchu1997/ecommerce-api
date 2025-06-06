@@ -6,64 +6,64 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BannerService } from './banner.service';
 import { CreateBannerDTO } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
+import { SkipThrottle } from '@nestjs/throttler';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { Public } from 'src/auth/decorators/public.decorator';
 
-@Controller('banner')
+@SkipThrottle()
+@Controller('banners')
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
-
+  @Roles(Role.ADMIN)
   @Post()
   async create(@Body() createBannerDto: CreateBannerDTO) {
-    const banner = await this.bannerService.create(createBannerDto);
     return {
-      message: '✅✅ Tạo Banner thành công ✅✅',
-      banner,
+      message: 'Tạo Banner thành công ✅',
+      banner: await this.bannerService.create(createBannerDto),
     };
   }
-
+  @Public()
   @Get()
   async findAll() {
     const banners = await this.bannerService.findAll();
     return {
-      message: '✅✅ Lấy tất cả Banner thành công ✅✅',
+      message: ' Lấy tất cả Banner thành công ✅',
       banners,
     };
   }
 
+  @Public()
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const bannerID = new UtilsService().IdStringToNumber(id);
-    const banner = await this.bannerService.findOne(bannerID);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return {
-      message: '✅✅ Lấy Banner qua ID thành công ✅✅',
-      banner,
+      message: ' Lấy Banner qua ID thành công ✅',
+      banner: await this.bannerService.findOne(id),
     };
   }
 
+  @Roles(Role.ADMIN)
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateBannerDto: UpdateBannerDto,
   ) {
-    const bannerID = new UtilsService().IdStringToNumber(id);
-
-    const banner = await this.bannerService.update(bannerID, updateBannerDto);
     return {
-      message: '✅✅ Đã cập nhật Banner thành công !! ✅✅',
-      banner,
+      message: 'Đã cập nhật Banner thành công !! ✅',
+      banner: await this.bannerService.update(id, updateBannerDto),
     };
   }
-
+  @Roles(Role.ADMIN)
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const bannerID = new UtilsService().IdStringToNumber(id);
-    const banner = await this.bannerService.remove(bannerID);
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return {
       message: '✅✅ Đã xóa Banner Thành công !! ✅✅',
-      banner,
+      banner: await this.bannerService.remove(id),
     };
   }
 }

@@ -14,13 +14,15 @@ import { Transform } from 'class-transformer';
 
 export class CreateBannerDTO {
   @IsNotEmpty({ message: 'Không được bỏ trống đường dẫn hình ảnh !!' })
-  @MinLength(2, { message: 'Tên danh mục phải ít nhất 2 ký tự !!' })
-  @MaxLength(100, { message: 'Tên không được vượt quá 100 ký tự ' })
   imageUrl: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseFloat(value))
+  storeId: number;
 
   @IsOptional()
   @IsString({ message: 'Link phải là kiểu chuỗi' })
-  @IsUrl()
   link?: string;
 
   @IsOptional()

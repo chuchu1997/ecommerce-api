@@ -17,6 +17,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { MyLogger } from './utils/logger.service';
 import { StoresModule } from './stores/stores.module';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     OrdersModule,
     BannerModule,
     StoresModule,
+    ArticlesModule,
   ],
   controllers: [AppController],
   providers: [
