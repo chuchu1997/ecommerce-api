@@ -36,12 +36,23 @@ enum PaymentMethod {
   COD              // Thanh toán khi nhận hàng
   BANK_TRANSFER    // Chuyển khoản ngân hàng
 }
+enum SocialType {
+  FACEBOOK
+  TIKTOK
+  ZALO
+  YOUTUBE
+  SHOPEE
+  TIKI
+  LAZADA
+
+}
 enum PaymentStatus {
   PENDING      // Đang chờ thanh toán
   COMPLETED    // Đã thanh toán
   FAILED       // Thanh toán thất bại
   CANCELED     // Đã hủy thanh toán
 }
+
 
 // =============================================================================
 // USER MANAGEMENT
@@ -82,20 +93,36 @@ model Store  {
    description String?
    userID Int
    user User @relation(fields: [userID],references: [id])
-   
+
+   email String?
+   phone String?
+   address String?
+   logo String?
+   favicon String?
+
    categories Category[] @relation("StoreToCategories")
    products Product[] @relation("StoreToProducts")
-   
-
    news News[] @relation("StoreToNews")
-
    banners Banner[] @relation("StoreToBanner")
-   
+   socials Social[] @relation("StoreToSocial")
+
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
 
    @@index([userID])
 }
+model Social {
+  id       Int    @id @default(autoincrement())
+  type     SocialType // ví dụ: 'facebook', 'instagram', 'zalo', 'tiktok'
+  url      String
+  storeId  Int
+  store    Store  @relation("StoreToSocial",fields: [storeId], references: [id])
+
+  @@index([storeId])
+  @@unique([type, storeId]) // mỗi loại mạng xã hội chỉ nên có 1 bản ghi trên mỗi store
+}
+
+
 
 model News { 
    id          Int          @id @default(autoincrement())
@@ -131,7 +158,7 @@ model Category {
   slug        String    @unique
   description String  @db.Text
   parentId    Int?
-  imageBillboard String 
+  imageUrl String 
   subCategories Category[] @relation("SubCategory")
   parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   products    Product[]
@@ -245,6 +272,10 @@ model OrderItem {
   orderId   Int
   product   Product  @relation(fields: [productId], references: [id])
   order     Order    @relation(fields: [orderId], references: [id])
+
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([productId])
   @@index([orderId])

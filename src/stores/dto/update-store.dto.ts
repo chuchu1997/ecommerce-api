@@ -4,8 +4,6 @@ import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateStoreDto extends PartialType(CreateStoreDto) {
-  @IsOptional()
-  description?: string;
   @IsNotEmpty({ message: 'Thời gian Cập nhật  Store  không được bỏ trống ' })
   updatedAt?: string | undefined;
 }

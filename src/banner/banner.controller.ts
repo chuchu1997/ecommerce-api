@@ -61,9 +61,9 @@ export class BannerController {
   @Roles(Role.ADMIN)
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.bannerService.remove(id);
     return {
-      message: '✅✅ Đã xóa Banner Thành công !! ✅✅',
-      banner: await this.bannerService.remove(id),
+      message: ' Đã xóa Banner Thành công !! ✅',
     };
   }
 }

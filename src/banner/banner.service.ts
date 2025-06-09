@@ -8,18 +8,34 @@ import { UploadService } from 'src/upload/upload.service';
 export class BannerService {
   constructor(
     private prisma: PrismaService,
-
     private uploadService: UploadService,
   ) {}
   async create(createBannerDto: CreateBannerDTO) {
-    const { ...data } = createBannerDto;
-    return await this.prisma.banner.create({
-      data,
-    });
+    const { position, ...data } = createBannerDto;
+    return await this.prisma.$transaction([
+      this.prisma.banner.updateMany({
+        where: {
+          position: {
+            gte: position,
+          },
+        },
+        data: {
+          position: { increment: 1 },
+        },
+      }),
+      this.prisma.banner.create({
+        data: {
+          ...data,
+          position,
+        },
+      }),
+    ]);
   }
 
   async findAll() {
-    return await this.prisma.banner.findMany({});
+    return await this.prisma.banner.findMany({
+      orderBy: { position: 'asc' },
+    });
   }
 
   async findOne(id: number) {
@@ -99,13 +115,25 @@ export class BannerService {
       where: { id },
       select: {
         imageUrl: true,
+        position: true,
       },
     });
     if (existBanner?.imageUrl) {
       await this.uploadService.deleteImagesFromS3(existBanner.imageUrl);
     }
-    return await this.prisma.banner.delete({
+    await this.prisma.banner.delete({
       where: { id },
     });
+    await this.prisma.banner.updateMany({
+      where: {
+        position: {
+          gt: existBanner?.position,
+        },
+      },
+      data: {
+        position: { decrement: 1 },
+      },
+    });
+    return;
   }
 }

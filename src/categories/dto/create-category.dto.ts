@@ -50,7 +50,7 @@ export class CreateCategoryDto {
 
   @IsNotEmpty()
   @IsString()
-  imageBillboard: string;
+  imageUrl: string;
 
   @IsNotEmpty()
   @IsString()

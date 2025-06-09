@@ -7,7 +7,9 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
+import { StoreSocialDto } from './socials/store-social.dto';
 
 export class CreateStoreDto {
   // Tên sản phẩm
@@ -23,5 +25,35 @@ export class CreateStoreDto {
   @Transform(({ value }) => parseFloat(value))
   userID: number;
 
-  //CÁC SẢN PHẨM THUỘC VỀ STORE NÀY !!
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  email?: string;
+
+  // Số điện thoại
+  @IsString()
+  @IsOptional()
+  @MaxLength(20)
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsOptional()
+  logo?: string; //URL
+
+  @IsString()
+  @IsOptional()
+  favicon?: string; //URL
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StoreSocialDto)
+  @IsOptional()
+  socials?: StoreSocialDto[] = [];
 }

@@ -35,10 +35,9 @@ export class CreateBannerDTO {
   @MaxLength(8000, { message: 'Mô tả không thể vượt quá 8000 ký tự' })
   description?: string;
 
-  @IsOptional()
   @IsInt({ message: 'Position phải là kiểu Number' })
   @Transform(({ value }) => (value ? parseInt(value, 10) : undefined))
-  position?: number;
+  position: number;
 
   @IsBoolean()
   @IsOptional()
