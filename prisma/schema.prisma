@@ -44,13 +44,21 @@ enum SocialType {
   SHOPEE
   TIKI
   LAZADA
-
 }
 enum PaymentStatus {
   PENDING      // Đang chờ thanh toán
   COMPLETED    // Đã thanh toán
   FAILED       // Thanh toán thất bại
   CANCELED     // Đã hủy thanh toán
+}
+enum CategoryVariant {
+  NEWS //TIN TUC
+  COURSES // KHOA HOC
+  SERVICES // DICH VU
+  PROMOTION // CHUONG TRINH KHUYEN MAI
+  CONTACT // LIEN HE 
+
+
 }
 
 
@@ -163,6 +171,7 @@ model Category {
   parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   products    Product[]
   seo           SEO?      @relation("CategoryToSEO")
+  variant CategoryVariant?
   storeId Int
   store Store @relation("StoreToCategories",fields: [storeId],references: [id])
 

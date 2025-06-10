@@ -44,6 +44,9 @@ export class StoresService {
       where: {
         userID: userID,
       },
+      include: {
+        socials: true,
+      },
     });
   }
 
@@ -52,6 +55,9 @@ export class StoresService {
       where: {
         id,
         userID: userId,
+      },
+      include: {
+        socials: true,
       },
     });
   }
@@ -83,9 +89,9 @@ export class StoresService {
     if (isFavUpdate && existStore.favicon) {
       await this.uploadService.deleteImagesFromS3(existStore.favicon);
     }
-    const isSocialsUpdate =
-      socials &&
-      JSON.stringify(socials) !== JSON.stringify(existStore?.socials);
+    // const isSocialsUpdate =
+    //   socials &&
+    //   JSON.stringify(socials) !== JSON.stringify(existStore?.socials);
 
     return await this.prisma.store.update({
       where: {
@@ -93,7 +99,7 @@ export class StoresService {
       },
       data: {
         ...dataUpdate,
-        ...(isSocialsUpdate && {
+        ...(socials !== undefined && {
           socials: {
             deleteMany: {},
             createMany: {
@@ -104,6 +110,9 @@ export class StoresService {
             },
           },
         }),
+
+        logo: logo,
+        favicon: favicon,
         name: dataUpdate.name ?? '',
         description: dataUpdate.description ?? '',
       },

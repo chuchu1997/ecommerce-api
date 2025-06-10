@@ -8,9 +8,11 @@ import {
   Matches,
   ValidateNested,
   IsNumber,
+  IsEnum,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { SEODto } from 'src/utils/seo.dto';
+import { CategoryVariant } from '@prisma/client';
 
 export class CreateCategoryDto {
   @IsNotEmpty()
@@ -47,6 +49,10 @@ export class CreateCategoryDto {
   @ValidateNested({ each: true })
   @Type(() => SEODto)
   seo?: SEODto;
+
+  @IsOptional()
+  @IsEnum(CategoryVariant)
+  variant?: CategoryVariant;
 
   @IsNotEmpty()
   @IsString()
