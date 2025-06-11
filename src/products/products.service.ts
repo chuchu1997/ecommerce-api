@@ -172,6 +172,7 @@ export class ProductsService {
       seo,
       colors = [],
       sizes = [],
+      giftProductIDS,
       ...data
     } = updateProductDto;
 
