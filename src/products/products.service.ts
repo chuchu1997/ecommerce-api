@@ -24,7 +24,8 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const { images, sizes, colors, seo, storeId, ...data } = createProductDto;
+    const { images, giftProductIDS, sizes, colors, seo, storeId, ...data } =
+      createProductDto;
     try {
       const product = await this.prisma.product.create({
         data: {
@@ -40,6 +41,7 @@ export class ProductsService {
           }),
           storeId: storeId,
           name: data.name,
+          ratingCount: 5,
           description: data.description,
           price: data.price,
           isFeatured: data.isFeatured ?? false,
@@ -68,6 +70,20 @@ export class ProductsService {
               },
             }),
 
+          ...(giftProductIDS &&
+            giftProductIDS.length > 0 && {
+              createMany: {
+                data: giftProductIDS.map((giftId: number) => ({
+                  giftId,
+                })),
+                skipDuplicates: true,
+              },
+            }),
+          // giftedIn: {
+          //   createMany: {
+          //     data: [],
+          //   },
+          // },
           images: {
             createMany: {
               data: images,

@@ -39,7 +39,7 @@ export class CategoriesService {
   async findAll(query: CategoryQueryFilterDto) {
     //Chỉ lấy ra các categories cha !!!
     const { justGetParent = false, storeID } = query;
-
+    console.log('QUERY', query);
     const categories = await this.prisma.category.findMany({
       where: {
         storeId: storeID,
@@ -81,9 +81,23 @@ export class CategoriesService {
     return categories;
   }
 
-  async findOne(id: number) {
+  async findOne(slug: string, query: CategoryQueryFilterDto) {
+    const { storeID } = query;
+    console.log('FIND ONE CALL !');
     const category = await this.prisma.category.findUnique({
-      where: { id },
+      where: {
+        slug,
+        storeId: storeID,
+      },
+      include: {
+        products: {
+          include: {
+            images: true,
+            sizes: true,
+            colors: true,
+          },
+        },
+      },
     });
     return category;
   }
@@ -105,6 +119,7 @@ export class CategoriesService {
       where: { id, storeId: data.storeId },
       data: {
         ...data,
+        parentId: data.parentId ?? null,
         ...(seo && {
           //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
           seo: {
@@ -115,6 +130,7 @@ export class CategoriesService {
         }),
       },
     });
+    console.log('OBJECT UPDATE', category);
 
     return category;
 

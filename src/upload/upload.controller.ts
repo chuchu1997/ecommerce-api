@@ -43,6 +43,7 @@ export class UploadController {
     }
   }
   @Delete('')
+  @Roles(Role.ADMIN)
   async deleteFiles(@Query() query: { imageUrl: string }) {
     await this.uploadService.deleteImagesFromS3(query.imageUrl);
     return {

@@ -16,6 +16,7 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Public } from 'src/auth/decorators/public.decorator';
 @SkipThrottle()
 @Controller('stores')
 export class StoresController {
@@ -32,12 +33,14 @@ export class StoresController {
 
     // return this.storesService.create(createStoreDto);
   }
-
+  @Public()
   @Get()
   findAll() {
     return this.storesService.findAll();
   }
-  @Roles(Role.ADMIN)
+
+  //DÙNG ĐỂ LẤY SDT + EMAIL + ADDRESS + SOCIALS CỦA STORE !!
+  @Public()
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -60,6 +63,7 @@ export class StoresController {
     };
   }
 
+  @Roles(Role.ADMIN)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -68,6 +72,7 @@ export class StoresController {
     return this.storesService.update(id, updateStoreDto);
   }
 
+  @Roles(Role.ADMIN)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.storesService.remove(id);

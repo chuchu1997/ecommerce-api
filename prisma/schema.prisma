@@ -187,6 +187,7 @@ model Product {
   id          Int          @id @default(autoincrement())
   name        String @unique
   description String  @db.Text
+  oldPrice Float?
   price       Float
   isFeatured Boolean @default(false)
   slug String @unique
@@ -204,6 +205,15 @@ model Product {
   brandId     Int?
   reviews     Review[]
 
+
+    // A: sản phẩm này có tặng quà nào không?
+  giftProducts GiftProduct[] @relation("ProductWithGifts")
+
+  // B: sản phẩm này có phải quà tặng của sản phẩm nào không?
+  giftedIn     GiftProduct[] @relation("GiftedToProduct")
+
+  
+
   sku         String? @unique
   seo           SEO?      @relation("ProductToSEO")
   storeId Int
@@ -219,7 +229,22 @@ model Product {
   @@index([brandId])
 
   @@index([storeId])
+
 }
+
+model GiftProduct {
+  id         Int     @id @default(autoincrement())
+
+  productId Int  // ID của sản phẩm chính (sản phẩm đang bán)
+  giftId    Int  // ID của sản phẩm được tặng kèm (quà)
+
+  product   Product @relation("ProductWithGifts", fields: [productId], references: [id])
+  gift      Product @relation("GiftedToProduct", fields: [giftId], references: [id])
+
+  @@unique([productId, giftId])
+  @@index([giftId])
+}
+
 //BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ COLOR SẼ ĐƯỢC XÓA THEO)
 model ProductColor {
   id         Int      @id @default(autoincrement())

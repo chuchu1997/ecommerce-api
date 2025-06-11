@@ -31,9 +31,15 @@ export class CreateProductDto {
   @MinLength(10, { message: 'Mô tả phải có ít nhất 10 ký tự' })
   description: string;
 
+  //GIA CU
+  @IsNumber()
+  @IsOptional()
+  @Transform(({ value }) => parseFloat(value))
+  oldPrice: number;
+
   // Giá sản phẩm
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @Min(0, { message: 'Giá không được âm' })
   @Transform(({ value }) => parseFloat(value))
   price: number;
@@ -137,6 +143,12 @@ export class CreateProductDto {
   @IsInt({ message: 'categoryId phải là một số nguyên!' })
   @Transform(({ value }) => parseInt(value, 10))
   categoryId: number;
+
+  @IsArray()
+  @IsOptional()
+  @IsInt({ message: 'ID Sản phẩm tặng phải là NUMBER' })
+  @Transform(({ value }) => parseInt(value, 10))
+  giftProductIDS: number[] = [];
   // Thời gian tạo (tự động khi tạo, không cần nhập)
   //SKU
 

@@ -51,6 +51,7 @@ export class ProductsController {
     };
   }
 
+  @Public()
   @Get(':slug')
   async findOne(@Param('slug') slug: string) {
     return {

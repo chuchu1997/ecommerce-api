@@ -15,6 +15,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryQueryFilterDto } from './dto/category-query-filter.dto';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @SkipThrottle()
 @Controller('categories')
@@ -30,6 +31,7 @@ export class CategoriesController {
     };
   }
 
+  @Public()
   @Get()
   async findAll(@Query() query: CategoryQueryFilterDto) {
     return {
@@ -37,12 +39,14 @@ export class CategoriesController {
       categories: await this.categoriesService.findAll(query),
     };
   }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const categoryID = new UtilsService().IdStringToNumber(id);
-
-    return await this.categoriesService.findOne(categoryID);
+  @Public()
+  @Get(':slug')
+  async findOne(
+    @Param('slug') slug: string,
+    @Query()
+    query: CategoryQueryFilterDto,
+  ) {
+    return await this.categoriesService.findOne(slug, query);
   }
   @HttpCode(200)
   @Patch(':id')
