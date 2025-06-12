@@ -82,24 +82,64 @@ export class CategoriesService {
   }
 
   async findOne(slug: string, query: CategoryQueryFilterDto) {
-    const { storeID } = query;
-    console.log('FIND ONE CALL !');
-    const category = await this.prisma.category.findUnique({
+    const { storeID, currentPage = 1, limit = 4 } = query;
+    // First get the main category
+
+    const mainCategory = await this.prisma.category.findUnique({
       where: {
         slug,
         storeId: storeID,
       },
-      include: {
-        products: {
-          include: {
-            images: true,
-            sizes: true,
-            colors: true,
-          },
+    });
+
+    if (!mainCategory) return null;
+
+    // Recursive function to get all descendant category IDs
+    const getAllDescendantCategoryIds = async (categoryId) => {
+      const categoryIds = [categoryId];
+
+      // Get direct subcategories
+      const subCategories = await this.prisma.category.findMany({
+        where: {
+          parentId: categoryId,
+          storeId: storeID,
+        },
+        select: { id: true },
+      });
+
+      // Recursively get subcategories of each subcategory
+      for (const subCategory of subCategories) {
+        const descendantIds = await getAllDescendantCategoryIds(subCategory.id);
+        categoryIds.push(...descendantIds);
+      }
+
+      return categoryIds;
+    };
+
+    // Get all category IDs (main + all descendants)
+    const allCategoryIds = await getAllDescendantCategoryIds(mainCategory.id);
+
+    // Get all products from all these categories
+    const allProducts = await this.prisma.product.findMany({
+      where: {
+        categoryId: {
+          in: allCategoryIds,
         },
       },
+      include: {
+        images: true,
+        sizes: true,
+        colors: true,
+      },
+      skip: (currentPage - 1) * limit,
+      take: limit,
     });
-    return category;
+
+    return {
+      ...mainCategory,
+      products: allProducts,
+      totalProducts: allProducts.length,
+    };
   }
   convertCategoryIdToNumber(categoryID: string): number {
     return parseInt(categoryID, 10);

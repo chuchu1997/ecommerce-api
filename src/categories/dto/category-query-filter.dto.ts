@@ -13,4 +13,14 @@ export class CategoryQueryFilterDto {
   @IsBoolean()
   @Transform(({ value }) => value === 'true')
   justGetParent?: boolean; // Filter orders created within the current month
+
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  currentPage: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  limit: number;
 }

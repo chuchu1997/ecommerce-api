@@ -42,6 +42,7 @@ export class ProductsService {
           storeId: storeId,
           name: data.name,
           ratingCount: 5,
+
           description: data.description,
           price: data.price,
           isFeatured: data.isFeatured ?? false,

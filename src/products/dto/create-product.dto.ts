@@ -35,7 +35,7 @@ export class CreateProductDto {
   @IsNumber()
   @IsOptional()
   @Transform(({ value }) => parseFloat(value))
-  oldPrice: number;
+  originalPrice: number;
 
   // Giá sản phẩm
   @IsNumber()
@@ -144,11 +144,10 @@ export class CreateProductDto {
   @Transform(({ value }) => parseInt(value, 10))
   categoryId: number;
 
-  @IsArray()
   @IsOptional()
-  @IsInt({ message: 'ID Sản phẩm tặng phải là NUMBER' })
+  @IsArray()
   @Transform(({ value }) => parseInt(value, 10))
-  giftProductIDS: number[] = [];
+  giftProductIDS?: number[] = [];
   // Thời gian tạo (tự động khi tạo, không cần nhập)
   //SKU
 
