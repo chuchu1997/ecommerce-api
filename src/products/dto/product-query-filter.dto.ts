@@ -1,4 +1,10 @@
-import { IsOptional, IsBoolean, IsNumber, IsString } from 'class-validator';
+import {
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  IsString,
+  IsArray,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 /**
@@ -26,6 +32,10 @@ export class ProductQueryFilterDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
 
   @IsOptional()
   @IsBoolean()

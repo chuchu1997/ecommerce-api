@@ -235,6 +235,7 @@ model Product {
 model GiftProduct {
   id         Int     @id @default(autoincrement())
 
+  
   productId Int  // ID của sản phẩm chính (sản phẩm đang bán)
   giftId    Int  // ID của sản phẩm được tặng kèm (quà)
 

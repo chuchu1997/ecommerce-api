@@ -39,7 +39,7 @@ export class CategoriesService {
   async findAll(query: CategoryQueryFilterDto) {
     //Chỉ lấy ra các categories cha !!!
     const { justGetParent = false, storeID } = query;
-    console.log('QUERY', query);
+
     const categories = await this.prisma.category.findMany({
       where: {
         storeId: storeID,
@@ -170,7 +170,6 @@ export class CategoriesService {
         }),
       },
     });
-    console.log('OBJECT UPDATE', category);
 
     return category;
 

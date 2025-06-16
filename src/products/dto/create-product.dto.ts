@@ -18,6 +18,7 @@ import {
 import { ProductColorDto } from './product-color/product-color.dto';
 import { ProductSizeDto } from './product-size/product-size.dto';
 import { SEODto } from 'src/utils/seo.dto';
+import { GiftProductDTO } from './gift-product/gift-product.dto';
 export class CreateProductDto {
   // Tên sản phẩm
   @IsString()
@@ -146,8 +147,9 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => parseInt(value, 10))
-  giftProductIDS?: number[] = [];
+  @ValidateNested({ each: true })
+  @Type(() => GiftProductDTO)
+  giftProducts: GiftProductDTO[] = [];
   // Thời gian tạo (tự động khi tạo, không cần nhập)
   //SKU
 

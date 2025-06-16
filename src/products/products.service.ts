@@ -24,7 +24,7 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const { images, giftProductIDS, sizes, colors, seo, storeId, ...data } =
+    const { images, giftProducts, sizes, colors, seo, storeId, ...data } =
       createProductDto;
     try {
       const product = await this.prisma.product.create({
@@ -71,25 +71,23 @@ export class ProductsService {
               },
             }),
 
-          ...(giftProductIDS &&
-            giftProductIDS.length > 0 && {
-              createMany: {
-                data: giftProductIDS.map((giftId: number) => ({
-                  giftId,
-                })),
-                skipDuplicates: true,
-              },
-            }),
-          // giftedIn: {
-          //   createMany: {
-          //     data: [],
-          //   },
-          // },
           images: {
             createMany: {
               data: images,
             },
           },
+          ...(giftProducts &&
+            giftProducts.length > 0 && {
+              giftProducts: {
+                createMany: {
+                  data: giftProducts
+                    .filter((g) => g && g.id) // Filter out invalid entries
+                    .map((g) => ({
+                      giftId: g.id, // Use giftId field from GiftProduct table
+                    })),
+                },
+              },
+            }),
         },
       });
       this.logger.debug(`Đã tạo product ${product.name}`);
@@ -113,6 +111,16 @@ export class ProductsService {
       include: {
         images: true,
         // category: true,
+        giftProducts: {
+          include: {
+            gift: {
+              include: {
+                giftedIn: true,
+                images: true,
+              },
+            },
+          },
+        },
         colors: true,
         sizes: true,
       },
@@ -125,6 +133,9 @@ export class ProductsService {
 
     const products = await this.prisma.product.findMany({
       where: {
+        name: {
+          contains: data.name?.trim(),
+        },
         slug: data.slug,
         categoryId: data.categoryId,
         isFeatured: data.isFeatured ? true : undefined,
@@ -136,6 +147,7 @@ export class ProductsService {
         colors: true,
         sizes: true,
       },
+
       orderBy: {
         createdAt: 'desc',
       },
@@ -173,11 +185,12 @@ export class ProductsService {
       seo,
       colors = [],
       sizes = [],
-      giftProductIDS,
+      giftProducts = [],
+      originalPrice,
       ...data
     } = updateProductDto;
-
     //XÓA ảnh trong s3 nếu như list DB và list image request có thay đổi !!!
+    console.log('GIFT ARRAU', giftProducts);
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
       select: { images: true, seo: true }, // Giả sử "images" là một mảng URL
@@ -199,12 +212,54 @@ export class ProductsService {
     }
 
     try {
+      if (giftProducts !== undefined) {
+        // Get current gift relationships
+        const currentGifts = await this.prisma.giftProduct.findMany({
+          where: { productId: id },
+          select: { giftId: true },
+        });
+
+        const currentGiftIds = currentGifts.map((g) => g.giftId);
+        const newGiftIds = giftProducts
+          .filter((g) => g && g.id)
+          .map((g) => g.id);
+
+        // Find what to delete and what to add
+        const toDelete = currentGiftIds.filter(
+          (giftId) => !newGiftIds.includes(giftId),
+        );
+        const toAdd = newGiftIds.filter(
+          (giftId) => !currentGiftIds.includes(giftId),
+        );
+
+        // Delete removed gifts
+        if (toDelete.length > 0) {
+          await this.prisma.giftProduct.deleteMany({
+            where: {
+              productId: id,
+              giftId: { in: toDelete },
+            },
+          });
+        }
+
+        // Add new gifts
+        if (toAdd.length > 0) {
+          await this.prisma.giftProduct.createMany({
+            data: toAdd.map((giftId) => ({
+              productId: id,
+              giftId: giftId,
+            })),
+          });
+        }
+      }
+
       const product = await this.prisma.product.update({
         where: {
           id,
         },
         data: {
           ...data,
+          originalPrice: originalPrice ?? 0,
           ...(seo && {
             //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
             seo: {
@@ -288,6 +343,9 @@ export class ProductsService {
                 : [],
           },
         },
+        include: {
+          giftProducts: true, // 👈 cần cái này mới trả về
+        },
       });
       return product;
     } catch (err) {
@@ -330,6 +388,9 @@ export class ProductsService {
         },
         colors: {
           //xóa tất cả colors liên quan đến sản phẩm ở bảng ProductColor quan hệ đến productId
+          deleteMany: {},
+        },
+        giftProducts: {
           deleteMany: {},
         },
       },
