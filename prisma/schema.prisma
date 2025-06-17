@@ -170,7 +170,7 @@ model Category {
   subCategories Category[] @relation("SubCategory")
   parentCategory Category? @relation("SubCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   products    Product[]
-  seo           SEO?      @relation("CategoryToSEO")
+  seo          Json?
   variant CategoryVariant?
   storeId Int
   store Store @relation("StoreToCategories",fields: [storeId],references: [id])
@@ -183,9 +183,12 @@ model Category {
   @@index([storeId])
 }
 
+
+
 model Product {
   id          Int          @id @default(autoincrement())
   name        String @unique
+  shortDescription String
   description String  @db.Text
   originalPrice Float?
   price       Float
@@ -215,7 +218,7 @@ model Product {
   
 
   sku         String? @unique
-  seo           SEO?      @relation("ProductToSEO")
+  seo           Json?     
   storeId Int
   store Store @relation("StoreToProducts",fields: [storeId],references: [id])
 
@@ -423,27 +426,6 @@ model Banner {
   @@index([storeId])
 }
 
-model SEO {
-  id              Int      @id @default(autoincrement()) // ID của SEO
-  title           String   // Tiêu đề SEO
-  description     String   // Mô tả SEO
-  keywords        String   // Từ khóa SEO (dạng chuỗi, có thể phân tách bằng dấu phẩy)
-  openGraphTitle  String?  // Tiêu đề OpenGraph (cho chia sẻ mạng xã hội)
-  openGraphDescription String? // Mô tả OpenGraph
-  openGraphImage  String?  // Hình ảnh OpenGraph
- 
-  url             String   // URL của đối tượng (Product, Category, Blog)
-  productId       Int? @unique    // Khóa ngoại tới Product
-  categoryId         Int?     @unique
-  
-  product           Product? @relation("ProductToSEO", fields: [productId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  category           Category? @relation("CategoryToSEO", fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-
-  createdAt       DateTime @default(now()) // Thời gian tạo
-  updatedAt       DateTime @updatedAt      // Thời gian cập nhật
-
-  
-}
 
 model Image {
   id        Int      @id @default(autoincrement())

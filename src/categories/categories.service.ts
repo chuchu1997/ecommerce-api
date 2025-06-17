@@ -127,6 +127,15 @@ export class CategoriesService {
         },
       },
       include: {
+        giftProducts: {
+          include: {
+            gift: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
         images: true,
         sizes: true,
         colors: true,

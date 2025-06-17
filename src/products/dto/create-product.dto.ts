@@ -32,6 +32,11 @@ export class CreateProductDto {
   @MinLength(10, { message: 'Mô tả phải có ít nhất 10 ký tự' })
   description: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3, { message: 'Mô tả ngắn phải có ít nhất 10 ký tự' })
+  shortDescription: string;
+
   //GIA CU
   @IsNumber()
   @IsOptional()

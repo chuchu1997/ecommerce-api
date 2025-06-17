@@ -104,29 +104,34 @@ export class ProductsService {
     });
   }
   async getProductBySlug(slug: string) {
-    const product = await this.prisma.product.findUnique({
-      where: {
-        slug: slug,
-      },
-      include: {
-        images: true,
-        // category: true,
-        giftProducts: {
-          include: {
-            gift: {
-              include: {
-                giftedIn: true,
-                images: true,
+    console.log('CALL THIS');
+    try {
+      const product = await this.prisma.product.findUnique({
+        where: {
+          slug: slug,
+        },
+        include: {
+          images: true,
+          // category: true,
+          giftProducts: {
+            include: {
+              gift: {
+                include: {
+                  images: true,
+                },
               },
             },
           },
-        },
-        colors: true,
-        sizes: true,
-      },
-    });
 
-    return product;
+          colors: true,
+          sizes: true,
+        },
+      });
+
+      return product;
+    } catch (err) {
+      console.log('ERR', err);
+    }
   }
   async findProductsWithQuery(query: ProductQueryFilterDto) {
     const { limit = 4, currentPage = 1, ...data } = query;
@@ -190,7 +195,6 @@ export class ProductsService {
       ...data
     } = updateProductDto;
     //XÓA ảnh trong s3 nếu như list DB và list image request có thay đổi !!!
-    console.log('GIFT ARRAU', giftProducts);
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
       select: { images: true, seo: true }, // Giả sử "images" là một mảng URL
@@ -225,9 +229,9 @@ export class ProductsService {
           .map((g) => g.id);
 
         // Find what to delete and what to add
-        const toDelete = currentGiftIds.filter(
-          (giftId) => !newGiftIds.includes(giftId),
-        );
+        const toDelete = currentGiftIds
+          .filter((giftId): giftId is number => giftId !== null)
+          .filter((giftId) => !newGiftIds.includes(giftId));
         const toAdd = newGiftIds.filter(
           (giftId) => !currentGiftIds.includes(giftId),
         );
