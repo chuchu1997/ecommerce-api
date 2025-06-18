@@ -218,7 +218,7 @@ model PromotionProduct {
   productId   Int
 
   discount    Float              @default(0) // % giảm giá hoặc số tiền
-    discountType DiscountType    @default(PERCENT) /// LOẠI HÌNH GIẢM GIÁ 
+  discountType DiscountType    @default(PERCENT) /// LOẠI HÌNH GIẢM GIÁ 
 
 
   promotion   Promotion @relation(fields: [promotionId], references: [id])
