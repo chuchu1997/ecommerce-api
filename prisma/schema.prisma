@@ -24,6 +24,12 @@ enum Role {
   SELLER    /// Người bán hàng
 }
 
+enum DiscountType {
+  PERCENT     /// GIẢM THEO %
+  FIXED  /// GIÁ GIẢM TRỰC TIẾP
+}
+
+
 enum OrderStatus {
   ORDERED           // Đã đặt hàng
   AWAITING_SHIPMENT // Chờ chuyển phát
@@ -114,6 +120,8 @@ model Store  {
    banners Banner[] @relation("StoreToBanner")
    socials Social[] @relation("StoreToSocial")
 
+   promotion Promotion[] @relation("StoreToPromotion")
+
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
 
@@ -184,6 +192,44 @@ model Category {
 }
 
 
+model Promotion {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean            @default(true)
+  
+
+  promotionProducts PromotionProduct[]
+
+  storeId Int
+  store Store @relation("StoreToPromotion",fields: [storeId],references: [id])
+
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([storeId])
+}
+
+model PromotionProduct {
+  promotionId Int
+  productId   Int
+
+  discount    Float              @default(0) // % giảm giá hoặc số tiền
+    discountType DiscountType    @default(PERCENT) /// LOẠI HÌNH GIẢM GIÁ 
+
+
+  promotion   Promotion @relation(fields: [promotionId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+
+  // Khóa chính tổng hợp để tránh trùng
+  @@id([promotionId, productId])
+  @@index([productId])
+}
+
+
 
 model Product {
   id          Int          @id @default(autoincrement())
@@ -208,7 +254,7 @@ model Product {
   brandId     Int?
   reviews     Review[]
 
-
+   promotionProducts PromotionProduct[]
     // A: sản phẩm này có tặng quà nào không?
   giftProducts GiftProduct[] @relation("ProductWithGifts")
 

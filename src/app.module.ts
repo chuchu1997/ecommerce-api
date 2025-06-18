@@ -18,9 +18,15 @@ import { MyLogger } from './utils/logger.service';
 import { StoresModule } from './stores/stores.module';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { ArticlesModule } from './articles/articles.module';
+import { PromotionModule } from './promotion/promotion.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PromotionCronService } from './utils/schedule.service';
+import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(), //
+
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -39,9 +45,11 @@ import { ArticlesModule } from './articles/articles.module';
     BannerModule,
     StoresModule,
     ArticlesModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [
+    PromotionCronService,
     {
       provide: APP_GUARD,
       useClass: JwtGuard,
@@ -55,6 +63,7 @@ import { ArticlesModule } from './articles/articles.module';
       provide: APP_GUARD,
       useClass: RolesGuard, // Global roles guard
     },
+    PrismaService,
     AppService,
     MyLogger,
     JwtStrategy,
