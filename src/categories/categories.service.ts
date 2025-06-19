@@ -127,6 +127,11 @@ export class CategoriesService {
         },
       },
       include: {
+        promotionProducts: {
+          include: {
+            promotion: true,
+          },
+        },
         giftProducts: {
           include: {
             gift: {

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { PrismaService } from 'src/prisma.service';
+import { PromotionQueryDto } from './dto/promotion-filter.dto';
 
 @Injectable()
 export class PromotionService {
@@ -17,7 +18,7 @@ export class PromotionService {
             promotionProducts: {
               createMany: {
                 data: promotionProducts.map((promotionProduct) => ({
-                  productId: promotionProduct.id,
+                  productId: promotionProduct.productId,
                   discount: promotionProduct.discount,
                   discountType: promotionProduct.discountType,
                 })),
@@ -31,15 +32,32 @@ export class PromotionService {
     });
   }
 
-  async findAll() {
+  async findAll(query: PromotionQueryDto) {
+    const { currentPage, limit, storeID, promotionType, isActive } = query;
+
     return await this.prisma.promotion.findMany({
+      where: {
+        promotionType,
+        isActive,
+        storeId: storeID,
+      },
       include: {
         promotionProducts: {
           include: {
-            product: true,
+            product: {
+              include: {
+                promotionProducts: true,
+                images: true,
+              },
+            },
           },
         },
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit, // Đảm bảo kiểu số và giá trị mặc định
+      skip: (currentPage - 1) * limit, // Đảm bảo kiểu số và giá trị mặc định
     });
   }
 
@@ -51,7 +69,11 @@ export class PromotionService {
       include: {
         promotionProducts: {
           include: {
-            product: true,
+            product: {
+              include: {
+                images: true,
+              },
+            },
           },
         },
       },
@@ -65,19 +87,18 @@ export class PromotionService {
       data: {
         ...data,
         // Nếu có promotionProducts mới, xóa hết cũ và tạo lại
-        ...(promotionProducts &&
-          promotionProducts.length > 0 && {
-            promotionProducts: {
-              deleteMany: {}, // Xóa toàn bộ các product cũ của promotion này
-              createMany: {
-                data: promotionProducts.map((promotionProduct) => ({
-                  productId: promotionProduct.id,
-                  discount: promotionProduct.discount,
-                  discountType: promotionProduct.discountType,
-                })),
-              },
+        ...(promotionProducts && {
+          promotionProducts: {
+            deleteMany: {}, // Xóa toàn bộ các product cũ của promotion này
+            createMany: {
+              data: promotionProducts.map((promotionProduct) => ({
+                productId: promotionProduct.productId,
+                discount: promotionProduct.discount,
+                discountType: promotionProduct.discountType,
+              })),
             },
-          }),
+          },
+        }),
       },
       include: {
         promotionProducts: true,

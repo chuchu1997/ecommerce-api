@@ -147,6 +147,21 @@ export class ProductsService {
         storeId: data.storeID,
       },
       include: {
+        promotionProducts: {
+          include: {
+            promotion: true,
+          },
+        },
+        giftProducts: {
+          include: {
+            gift: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
+
         images: true,
         category: true,
         colors: true,

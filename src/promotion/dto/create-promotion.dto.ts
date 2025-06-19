@@ -13,7 +13,7 @@ import {
 
 export class PromotionProductDto {
   @IsNumber()
-  id: number;
+  productId: number;
 
   @IsNumber()
   discount: number;

@@ -24,6 +24,18 @@ enum Role {
   SELLER    /// Người bán hàng
 }
 
+enum PromotionType {
+  FLASHSALE       // Giảm giá trong khung giờ giới hạn
+  PERCENTAGE    // Giảm theo phần trăm
+  FIXED_AMOUNT     // Giảm giá theo số tiền cố định
+  BUY_ONE_GET_ONE  // Mua 1 tặng 1
+  FREE_SHIPPING    // Miễn phí vận chuyển
+  VOUCHER_CODE     // Áp dụng mã giảm giá
+  QUANTITY_BASED   // Giảm khi mua số lượng lớn
+  COMBO            // Giảm khi mua theo combo
+
+}
+
 enum DiscountType {
   PERCENT     /// GIẢM THEO %
   FIXED  /// GIÁ GIẢM TRỰC TIẾP
@@ -199,6 +211,8 @@ model Promotion {
   startDate   DateTime
   endDate     DateTime
   isActive    Boolean            @default(true)
+
+  promotionType PromotionType? @default(FLASHSALE)
   
 
   promotionProducts PromotionProduct[]

@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { PromotionService } from './promotion.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
@@ -16,6 +17,7 @@ import { Public } from 'src/auth/decorators/public.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { SkipThrottle } from '@nestjs/throttler';
+import { PromotionQueryDto } from './dto/promotion-filter.dto';
 
 @Controller('promotion')
 @SkipThrottle()
@@ -34,8 +36,8 @@ export class PromotionController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.promotionService.findAll();
+  findAll(@Query() query: PromotionQueryDto) {
+    return this.promotionService.findAll(query);
   }
 
   @Get(':id')
@@ -45,11 +47,14 @@ export class PromotionController {
 
   @Roles(Role.ADMIN)
   @Patch(':id')
-  update(
-    @Param('id') id: string,
+  async update(
+    @Param('id', ParseIntPipe) id: number,
     @Body() updatePromotionDto: UpdatePromotionDto,
   ) {
-    return this.promotionService.update(+id, updatePromotionDto);
+    return {
+      message: 'Chương trình khuyến mãi cập nhật ✅',
+      promotion: await this.promotionService.update(id, updatePromotionDto),
+    };
   }
   @Roles(Role.ADMIN)
   @Delete(':id')
