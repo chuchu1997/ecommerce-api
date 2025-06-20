@@ -63,7 +63,8 @@ export class StoresService {
   }
 
   async update(id: number, updateStoreDto: UpdateStoreDto) {
-    const { logo, favicon, socials, ...dataUpdate } = updateStoreDto;
+    // Exclude userID from dataUpdate to avoid Prisma type errors
+    const { logo, favicon, socials, userID, ...dataUpdate } = updateStoreDto;
 
     const existStore = await this.prisma.store.findUnique({
       where: {
@@ -115,6 +116,9 @@ export class StoresService {
         favicon: favicon,
         name: dataUpdate.name ?? '',
         description: dataUpdate.description ?? '',
+        ...(dataUpdate.seo !== undefined && {
+          seo: dataUpdate.seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
+        }),
       },
     });
   }

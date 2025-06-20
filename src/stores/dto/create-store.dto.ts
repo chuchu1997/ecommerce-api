@@ -10,6 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { StoreSocialDto } from './socials/store-social.dto';
+import { SEODto } from 'src/utils/seo.dto';
 
 export class CreateStoreDto {
   // Tên sản phẩm
@@ -56,4 +57,7 @@ export class CreateStoreDto {
   @Type(() => StoreSocialDto)
   @IsOptional()
   socials?: StoreSocialDto[] = [];
+
+  @IsOptional()
+  seo?: JSON;
 }
