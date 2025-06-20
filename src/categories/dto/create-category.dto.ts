@@ -46,9 +46,7 @@ export class CreateCategoryDto {
   storeId: number;
 
   @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => SEODto)
-  seo?: SEODto;
+  seo?: JSON;
 
   @IsOptional()
   @IsEnum(CategoryVariant)

@@ -29,16 +29,13 @@ export class ProductsService {
     try {
       const product = await this.prisma.product.create({
         data: {
+          ...(seo !== undefined && {
+            seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
+          }),
           ...data,
           // Nếu có SEO thì tiến hành tạo mới
           // Phải tạo kiểu này vì SEO có relation với PRODUCT !!!
-          ...(seo && {
-            seo: {
-              create: {
-                ...seo,
-              },
-            },
-          }),
+
           storeId: storeId,
           name: data.name,
           ratingCount: 5,
@@ -277,16 +274,12 @@ export class ProductsService {
           id,
         },
         data: {
+          ...(seo !== undefined && {
+            seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
+          }),
           ...data,
           originalPrice: originalPrice ?? 0,
-          ...(seo && {
-            //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
-            seo: {
-              update: {
-                ...seo,
-              },
-            },
-          }),
+
           ...(isImagesUpdated && {
             images: {
               deleteMany: {}, // Xóa tất cả ảnh cũ trong DB trước khi thêm mới

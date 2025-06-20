@@ -23,12 +23,8 @@ export class CategoriesService {
     const category = await this.prisma.category.create({
       data: {
         ...data,
-        ...(seo && {
-          seo: {
-            create: {
-              ...seo,
-            },
-          },
+        ...(seo !== undefined && {
+          seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
         }),
       },
     });
@@ -172,6 +168,9 @@ export class CategoriesService {
     const category = await this.prisma.category.update({
       where: { id, storeId: data.storeId },
       data: {
+        ...(seo !== undefined && {
+          seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
+        }),
         ...data,
         parentId: data.parentId ?? null,
         ...(seo && {

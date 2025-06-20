@@ -124,9 +124,7 @@ export class CreateProductDto {
 
   //SEO cho sản phẩm
   @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => SEODto)
-  seo?: SEODto;
+  seo?: JSON;
 
   // Số lượng trong kho
   @IsInt()
