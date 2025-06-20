@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { BannerService } from './banner.service';
 import { CreateBannerDTO } from './dto/create-banner.dto';
@@ -15,6 +16,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { BannerFilterDto } from './dto/get-banner-filter.dto';
 
 @SkipThrottle()
 @Controller('banners')
@@ -30,8 +32,8 @@ export class BannerController {
   }
   @Public()
   @Get()
-  async findAll() {
-    const banners = await this.bannerService.findAll();
+  async findAll(@Query() query: BannerFilterDto) {
+    const banners = await this.bannerService.findAll(query);
     return {
       message: ' Lấy tất cả Banner thành công ✅',
       banners,

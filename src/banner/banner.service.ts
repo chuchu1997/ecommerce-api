@@ -3,6 +3,7 @@ import { CreateBannerDTO } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { PrismaService } from 'src/prisma.service';
 import { UploadService } from 'src/upload/upload.service';
+import { BannerFilterDto } from './dto/get-banner-filter.dto';
 
 @Injectable()
 export class BannerService {
@@ -10,6 +11,7 @@ export class BannerService {
     private prisma: PrismaService,
     private uploadService: UploadService,
   ) {}
+
   async create(createBannerDto: CreateBannerDTO) {
     const { position, ...data } = createBannerDto;
     return await this.prisma.$transaction([
@@ -26,14 +28,22 @@ export class BannerService {
       this.prisma.banner.create({
         data: {
           ...data,
+          cta: data.cta ? JSON.parse(JSON.stringify(data.cta)) : undefined,
+
           position,
         },
       }),
     ]);
   }
 
-  async findAll() {
+  async findAll(query: BannerFilterDto) {
+    const { storeID } = query;
+
     return await this.prisma.banner.findMany({
+      where: {
+        storeId: storeID,
+        isActive: true,
+      },
       orderBy: { position: 'asc' },
     });
   }
@@ -102,6 +112,8 @@ export class BannerService {
       where: { id },
       data: {
         ...data,
+        cta: data.cta ? JSON.parse(JSON.stringify(data.cta)) : undefined,
+
         imageUrl: imageUrl ?? existBanner.imageUrl, // Keep old imageUrl if not provided
         position: position ?? existBanner.position, // Keep old position if not provided
         updatedAt: new Date(),
