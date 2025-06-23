@@ -10,10 +10,15 @@ import { OrderItemDTO } from './orderItem/order-item.dto';
 import { PaymentDto } from './payment/payment.dto';
 
 export class CreateOrderDTO {
-  @IsNotEmpty({ message: 'User ID phải có  !' })
+  @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value, 10))
   userId: number;
+
+  @IsNotEmpty({ message: 'Customer ID phải có ' })
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  customerInfoId: number;
 
   @IsNotEmpty({ message: 'Tổng giá trị của đơn hàng không được bỏ trống' })
   @IsNumber()

@@ -296,6 +296,7 @@ model Product {
 
 }
 
+
 model GiftProduct {
   id         Int     @id @default(autoincrement())
 
@@ -323,6 +324,8 @@ model ProductColor {
   @@index([productId])
 
 }
+
+
 //BẢNG TRUNG GIAN !!! (KHI XÓA CHI CHỈ CẦN XÓA BẢNG NÀY THÌ PRODUCT VÀ SIZE SẼ ĐƯỢC XÓA THEO)
 model ProductSize {
   id         Int      @id @default(autoincrement())
@@ -342,10 +345,25 @@ model ProductSize {
 // =============================================================================
 
 
+
+model CustomerInfo  { 
+  id         Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  email     String?
+  address   String
+  orders    Order[]
+  createdAt DateTime @default(now())
+
+}
+
 model Order {
   id              Int           @id @default(autoincrement())
-  user          User          @relation(fields: [userId], references: [id])
-  userId        Int
+  user          User?          @relation(fields: [userId], references: [id])
+  userId        Int?
+
+  customerInfoId Int
+  customerInfo   CustomerInfo @relation(fields: [customerInfoId], references: [id])
   // address () // SAU NÀY BỔ SUNG THÊM PHẦN ĐỊA CHỈ 
 
   // Liên kết với bảng OrderItem
@@ -357,10 +375,9 @@ model Order {
 
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  
- 
 
   @@index([userId])
+  @@index([customerInfoId])
 }
 model OrderItem {
   id        Int      @id @default(autoincrement())
