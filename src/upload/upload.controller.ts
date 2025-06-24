@@ -24,6 +24,7 @@ export class UploadController {
   @Roles(Role.ADMIN)
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+    console.log('UPLOAD TO S3 CALLED !!!');
     if (!files || files.length === 0) {
       throw new BadRequestException('No files uploaded');
     }
