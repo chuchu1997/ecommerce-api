@@ -1,24 +1,47 @@
-FROM node:18-alpine
+# Stage 1: Build
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Cài package
+# Install OpenSSL and other necessary packages for build stage
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+# Copy only package files first to leverage Docker layer caching
 COPY package*.json ./
+
+# Install all dependencies including devDependencies
 RUN npm install
 
-# Copy toàn bộ source
+# Copy source code
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma Client (if using Prisma)
 RUN npx prisma generate
 
-# Build NestJS App
+# Build the project (creates dist folder)
 RUN npm run build
 
+# Stage 2: Run
+FROM node:22-slim
 
-RUN npm run start
+WORKDIR /app
+
+# Install OpenSSL and curl for runtime (curl dùng cho wait-for-it)
+RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
+
+# Copy only package files to install only production dependencies
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# Copy built application and generated Prisma client from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
 
 
+
+# Expose the port your app listens on
 EXPOSE 3000
 
-
+# Start the app AFTER waiting for MySQL to be ready
+CMD ["node" ,"dist/src/main"]
