@@ -44,4 +44,6 @@ COPY --from=builder /app/prisma ./prisma
 EXPOSE 3000
 
 # Start the app AFTER waiting for MySQL to be ready
-CMD ["node" ,"dist/src/main"]
+
+CMD ["npm", "run", "start:prod"]
+
