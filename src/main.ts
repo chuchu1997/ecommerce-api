@@ -7,9 +7,6 @@ import * as bodyParser from 'body-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   // ✅ Hỗ trợ x-www-form-urlencoded
-  app.enableCors({
-    origin: '*',
-  });
   // app.use(bodyParser.urlencoded({ extended: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
