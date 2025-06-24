@@ -31,7 +31,7 @@ RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/
 
 # Copy only package files to install only production dependencies
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install
 
 # Copy built application and generated Prisma client from builder stage
 COPY --from=builder /app/dist ./dist
