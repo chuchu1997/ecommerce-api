@@ -46,6 +46,15 @@ export class PromotionService {
           include: {
             product: {
               include: {
+                giftProducts: {
+                  include: {
+                    gift: {
+                      include: {
+                        images: true,
+                      },
+                    },
+                  },
+                },
                 promotionProducts: true,
                 images: true,
               },

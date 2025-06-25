@@ -350,7 +350,6 @@ model CustomerInfo  {
   id         Int      @id @default(autoincrement())
   name      String
   phone     String
-  email     String?
   address   String
   orders    Order[]
   createdAt DateTime @default(now())

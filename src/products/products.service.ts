@@ -101,7 +101,6 @@ export class ProductsService {
     });
   }
   async getProductBySlug(slug: string) {
-    console.log('CALL THIS');
     try {
       const product = await this.prisma.product.findUnique({
         where: {
@@ -109,6 +108,11 @@ export class ProductsService {
         },
         include: {
           images: true,
+          promotionProducts: {
+            include: {
+              promotion: true,
+            },
+          },
           // category: true,
           giftProducts: {
             include: {
@@ -131,10 +135,13 @@ export class ProductsService {
     }
   }
   async findProductsWithQuery(query: ProductQueryFilterDto) {
-    const { limit = 4, currentPage = 1, ...data } = query;
+    const { limit = 4, currentPage = 1, ids, ...data } = query;
 
     const products = await this.prisma.product.findMany({
       where: {
+        id: {
+          in: ids,
+        },
         name: {
           contains: data.name?.trim(),
         },

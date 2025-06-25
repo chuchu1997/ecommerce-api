@@ -15,7 +15,7 @@ export class CreateOrderDTO {
   @Transform(({ value }) => parseInt(value, 10))
   userId: number;
 
-  @IsNotEmpty({ message: 'Customer ID phải có ' })
+  @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value, 10))
   customerInfoId: number;
