@@ -44,7 +44,6 @@ export class ProductsController {
     @Query()
     query: ProductQueryFilterDto,
   ) {
-    console.log('QUERY', query);
     return {
       message: ' Tìm kiếm sản phẩm thành công ✅',
       products: await this.productsService.findProductsWithQuery(query),
