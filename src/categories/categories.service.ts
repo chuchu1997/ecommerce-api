@@ -34,6 +34,7 @@ export class CategoriesService {
 
   async findAll(query: CategoryQueryFilterDto) {
     //Chỉ lấy ra các categories cha !!!
+    console.log('call on fetch all categories');
     const { justGetParent = false, storeID } = query;
 
     const categories = await this.prisma.category.findMany({

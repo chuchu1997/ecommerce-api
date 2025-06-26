@@ -20,7 +20,7 @@ export class AppController {
   @Public()
   @Get('/health')
   async check() {
-    console.log('CHECK');
+    // console.log('CHECK');
     try {
       await this.prisma.$queryRaw`SELECT 1`; // hoặc this.prisma.$queryRawUnsafe('SELECT 1')
       return { status: 'ok' };
