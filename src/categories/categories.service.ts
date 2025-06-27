@@ -3,6 +3,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/prisma.service';
 import { CategoryQueryFilterDto } from './dto/category-query-filter.dto';
+import { ProductsService } from 'src/products/products.service';
 
 @Injectable()
 export class CategoriesService {
@@ -149,7 +150,7 @@ export class CategoriesService {
     return {
       ...mainCategory,
       products: allProducts,
-      totalProducts: allProducts.length,
+      totalProducts: await this.prisma.product.count(),
     };
   }
   convertCategoryIdToNumber(categoryID: string): number {
