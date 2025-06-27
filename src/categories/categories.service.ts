@@ -80,7 +80,7 @@ export class CategoriesService {
   }
 
   async findOne(slug: string, query: CategoryQueryFilterDto) {
-    const { storeID, currentPage = 1, limit = 4 } = query;
+    const { storeID, currentPage = 1, limit = 8 } = query;
     // First get the main category
 
     const mainCategory = await this.prisma.category.findUnique({
@@ -121,14 +121,17 @@ export class CategoriesService {
         categoryId: {
           in: allCategoryIds,
         },
+        storeId: storeID, // ✅
       },
     });
+    console.log('ALL CATEGORY IDS', allCategoryIds);
     // Get all products from all these categories
     const allProducts = await this.prisma.product.findMany({
       where: {
         categoryId: {
           in: allCategoryIds,
         },
+        storeId: storeID, // ✅
       },
       include: {
         promotionProducts: {
