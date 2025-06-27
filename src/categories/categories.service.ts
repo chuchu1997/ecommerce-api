@@ -116,7 +116,13 @@ export class CategoriesService {
 
     // Get all category IDs (main + all descendants)
     const allCategoryIds = await getAllDescendantCategoryIds(mainCategory.id);
-
+    const totalCount = await this.prisma.product.count({
+      where: {
+        categoryId: {
+          in: allCategoryIds,
+        },
+      },
+    });
     // Get all products from all these categories
     const allProducts = await this.prisma.product.findMany({
       where: {
@@ -150,7 +156,7 @@ export class CategoriesService {
     return {
       ...mainCategory,
       products: allProducts,
-      totalProducts: await this.prisma.product.count(),
+      totalProducts: totalCount,
     };
   }
   convertCategoryIdToNumber(categoryID: string): number {
