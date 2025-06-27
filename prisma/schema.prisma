@@ -244,7 +244,19 @@ model PromotionProduct {
   @@index([productId])
 }
 
+model FakeComment {
+  id          Int          @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  content    String @db.Text
 
+  ratingCount Int
+  authorName String   // Có thể là tên ảo
+  avatarUrl  String?  // Tuỳ chọn: avatar giả
+
+  createdAt  DateTime @default(now())
+  @@index([productId])
+}
 
 model Product {
   id          Int          @id @default(autoincrement())
@@ -261,6 +273,7 @@ model Product {
   orderItems OrderItem[]
   colors      ProductColor[]
   sizes       ProductSize[]
+  fakeComments FakeComment[]
   stock       Int
   images      Image[]
   categoryId  Int

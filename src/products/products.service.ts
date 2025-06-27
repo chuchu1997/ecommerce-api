@@ -151,6 +151,7 @@ export class ProductsService {
         storeId: data.storeID,
       },
       include: {
+        fakeComments: true,
         promotionProducts: {
           include: {
             promotion: true,
