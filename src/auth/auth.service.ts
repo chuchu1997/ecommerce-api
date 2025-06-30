@@ -92,9 +92,9 @@ export class AuthService {
       resetTokenExpiry,
     );
     await this.emailService.sendResetLinkToEmail(
-      user.email,
+      user.email ?? '',
       resetToken,
-      user.name,
+      user.name ?? '',
     );
 
     // await this.emailService.sendResetPasswordEmail(
@@ -135,8 +135,8 @@ export class AuthService {
     await this.usersService.updatePassword(user.id, hashedPassword);
     await this.usersService.clearResetToken(user.id);
     await this.emailService.sendPasswordChangedNotification(
-      user.email,
-      user.name,
+      user.email ?? '',
+      user.name ?? '',
     );
     // await this.emailService.sendPasswordChangedNotification(
     //   user.email,

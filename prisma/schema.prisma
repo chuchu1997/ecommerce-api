@@ -86,11 +86,11 @@ enum CategoryVariant {
 
 model User {
   id          Int           @id @default(autoincrement())
-  email       String     @unique   /// Email đăng nhập
-  password    String                /// Mật khẩu đã hash
-  name        String                /// Tên người dùng
-  phone       String               /// Số điện thoại (tùy chọn)
-  address   String             /// Danh sách địa chỉ giao hàng
+  email       String?     @unique   /// Email đăng nhập
+  password    String?                /// Mật khẩu đã hash
+  name        String?                /// Tên người dùng
+  phone       String?               /// Số điện thoại (tùy chọn)
+  address   String?             /// Danh sách địa chỉ giao hàng
   avatar    String?             ///AVATAR
   orders      Order[]               /// Đơn hàng đã đặt
   cart        Cart?                 /// Giỏ hàng hiện tại
@@ -359,23 +359,10 @@ model ProductSize {
 
 
 
-model CustomerInfo  { 
-  id         Int      @id @default(autoincrement())
-  name      String
-  phone     String
-  address   String
-  orders    Order[]
-  createdAt DateTime @default(now())
-
-}
-
 model Order {
   id              Int           @id @default(autoincrement())
-  user          User?          @relation(fields: [userId], references: [id])
-  userId        Int?
-
-  customerInfoId Int
-  customerInfo   CustomerInfo @relation(fields: [customerInfoId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
+  userId        Int
   // address () // SAU NÀY BỔ SUNG THÊM PHẦN ĐỊA CHỈ 
 
   // Liên kết với bảng OrderItem
@@ -389,18 +376,26 @@ model Order {
   updatedAt        DateTime      @updatedAt
 
   @@index([userId])
-  @@index([customerInfoId])
+
 }
 model OrderItem {
   id        Int      @id @default(autoincrement())
   quantity  Int      @default(1)
-  unitPrice Float
-  subtotal  Float    @default(0)
+  unitPrice Float  // GIÁ TẠI THỜI ĐIỂM ĐÓ KHI ÁP DỤNG VOUCHER , PROMOTION  !!1
+  subtotal  Float    @default(0) // TỔNG TIỀN CHO SẢN PHẨM NÀY !!!
   productId Int
-  orderId   Int
+
   product   Product  @relation(fields: [productId], references: [id])
+  orderId   Int
   order     Order    @relation(fields: [orderId], references: [id])
 
+
+    // Snapshot promotion
+  discountType  DiscountType?      // Loại khuyến mãi: "PERCENT" hoặc "FIXED", nullable nếu không có khuyến mãi
+  discountValue Float?       // Giá trị khuyến mãi: ví dụ 10 (%) hoặc 50000 (đồng)
+
+    // Snapshot quà tặng
+  giftItems     OrderGiftItem[] // Quan hệ 1-n: 1 OrderItem có nhiều quà tặng
 
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -409,7 +404,17 @@ model OrderItem {
   @@index([orderId])
 }
 
-
+model OrderGiftItem {
+  id          Int      @id @default(autoincrement())
+  orderItemId Int
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  giftName    String      // Tên quà tặng
+  giftImage   String      // Ảnh quà tặng
+  giftQuantity Int   @default(1)     // Số lượng quà tặng
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  @@index([orderItemId])
+}
 
 
 model Payment {
@@ -438,9 +443,9 @@ model Payment {
 
 model Cart { 
   id          Int           @id @default(autoincrement())
-    user      User       @relation(fields: [userId], references: [id])
-    userId Int @unique
-    items CartItem[]
+  user      User       @relation(fields: [userId], references: [id])
+  userId Int @unique
+  items CartItem[]
 }
 model CartItem {
   id          Int           @id @default(autoincrement())
@@ -448,6 +453,7 @@ model CartItem {
   cartId    Int
   productId Int
   quantity  Int      /// Số lượng đặt
+  isSelect Boolean @default(true)
   @@index([cartId])
 }
 
