@@ -17,6 +17,7 @@ export class OrdersService {
     const order = await this.prisma.order.create({
       data: {
         ...orderData,
+
         status: OrderStatus.ORDERED,
 
         items: {

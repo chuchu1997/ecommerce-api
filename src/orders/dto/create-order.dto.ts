@@ -10,10 +10,13 @@ import { OrderItemDTO } from './orderItem/order-item.dto';
 import { PaymentDto } from './payment/payment.dto';
 
 export class CreateOrderDTO {
-  @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value, 10))
   userId: number;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  storeId: number;
 
   @IsOptional()
   @IsNumber()

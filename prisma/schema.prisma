@@ -132,6 +132,8 @@ model Store  {
    news News[] @relation("StoreToNews")
    banners Banner[] @relation("StoreToBanner")
    socials Social[] @relation("StoreToSocial")
+   orders Order[] @relation("StoreToOrders")
+  
 
    promotion Promotion[] @relation("StoreToPromotion")
 
@@ -282,6 +284,9 @@ model Product {
   brandId     Int?
   reviews     Review[]
 
+
+
+
    promotionProducts PromotionProduct[]
     // A: sản phẩm này có tặng quà nào không?
   giftProducts GiftProduct[] @relation("ProductWithGifts")
@@ -290,6 +295,8 @@ model Product {
   giftedIn     GiftProduct[] @relation("GiftedToProduct")
 
   
+  cartItems CartItem[]  // optional
+
 
   sku         String? @unique
   seo           Json?     
@@ -372,11 +379,15 @@ model Order {
   items           OrderItem[]
   payment Payment?
 
+  storeId Int
+  store Store @relation("StoreToOrders",fields: [storeId],references: [id])
+
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
   @@index([userId])
 
+  @@index([storeId])
 }
 model OrderItem {
   id        Int      @id @default(autoincrement())
@@ -451,10 +462,14 @@ model CartItem {
   id          Int           @id @default(autoincrement())
   cart      Cart     @relation(fields: [cartId], references: [id])
   cartId    Int
+
   productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
   quantity  Int      /// Số lượng đặt
   isSelect Boolean @default(true)
   @@index([cartId])
+  @@index([productId])
 }
 
 

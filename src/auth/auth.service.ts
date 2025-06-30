@@ -12,6 +12,8 @@ import { MyLogger } from 'src/utils/logger.service';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { EmailService } from 'src/utils/email.service';
+import { CreateGuestCart } from './dto/userGuest.dto';
+import { UpdateUserDTO } from 'src/users/dto/update-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +46,12 @@ export class AuthService {
     //RETURN ACCESS TOKEN
   }
 
+  async updateProfile(id: number, userProfile: UpdateUserDTO) {
+    return this.usersService.updateUserProfile(id, userProfile);
+  }
+  async createGuestUser(query: CreateGuestCart) {
+    return await this.usersService.createGuestUser(query);
+  }
   async generateAccessToken(user: User): Promise<any> {
     const payload = {
       sub: user.id,
@@ -117,6 +125,10 @@ export class AuthService {
     return await this.generateAccessToken(user); //RETURN ACCESS TOKEN
   }
 
+  async getUserByID(id: number) {
+    console.log('ss');
+    return await this.usersService.findUserByID(id);
+  }
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     const { token, newPassword } = resetPasswordDto;
 

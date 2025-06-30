@@ -22,6 +22,7 @@ import { PromotionModule } from './promotion/promotion.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PromotionCronService } from './utils/schedule.service';
 import { PrismaService } from './prisma.service';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PrismaService } from './prisma.service';
     StoresModule,
     ArticlesModule,
     PromotionModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [

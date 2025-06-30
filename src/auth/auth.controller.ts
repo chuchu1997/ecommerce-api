@@ -12,6 +12,7 @@ import {
   Request,
   Logger,
   ForbiddenException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
@@ -27,6 +28,8 @@ import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { CreateGuestCart } from './dto/userGuest.dto';
+import { UpdateUserDTO } from 'src/users/dto/update-user.dto';
 // @SkipThrottle()
 @SkipThrottle()
 @Controller('auth')
@@ -77,6 +80,37 @@ export class AuthController {
     };
   }
 
+  @HttpCode(200)
+  @Public()
+  @Post('userInfoGuest')
+  async createUserGuest(@Body() createGuestDto: CreateGuestCart) {
+    return {
+      message: 'Đã tạo guest',
+      userInfo: await this.authService.createGuestUser(createGuestDto),
+    };
+    // return {
+    //   message: '✅ Đăng ký thành công ✅',
+    //   accessToken: await this.authService.register(registerDto),
+    // };
+  }
+
+  @Public()
+  @Patch('updateProfile/:id')
+  async updateProfile(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDTO: UpdateUserDTO,
+  ) {
+    console.log('CO GOI NE ');
+    return {
+      message: 'Đã update info user',
+      userInfo: await this.authService.updateProfile(id, updateUserDTO),
+    };
+    // return {
+    //   message: '✅ Đăng ký thành công ✅',
+    //   accessToken: await this.authService.register(registerDto),
+    // };
+  }
+
   @Roles(Role.CUSTOMER, Role.ADMIN)
   @Get('profile')
   getProfile(@Request() req) {
@@ -86,6 +120,17 @@ export class AuthController {
       user: req.user,
     };
   }
+
+  @Public()
+  @Get(':id')
+  async getUserByID(@Param('id', ParseIntPipe) id: number) {
+    // req.user chính là payload hoặc user bạn return trong validate()
+    return {
+      message: '✅ Đây là thông tin của user ',
+      userInfo: await this.authService.getUserByID(id),
+    };
+  }
+
   @Public()
   @Post('forgot')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
