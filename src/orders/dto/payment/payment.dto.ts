@@ -12,11 +12,6 @@ import {
 } from 'class-validator';
 
 export class PaymentDto {
-  @IsOptional()
-  @IsInt({ message: 'ID Payment phải là Number !!! ' })
-  @Transform(({ value }) => parseInt(value, 10))
-  id: number;
-
   @IsNotEmpty({ message: 'Vui lòng chọn phương thức thanh toán !' })
   @IsEnum(PaymentMethod)
   method: string;
@@ -37,17 +32,11 @@ export class PaymentDto {
 
   @IsOptional()
   @IsString()
-  transactionId
+  transactionId;
 
   // Người chuyển khoản
   @IsOptional()
   @IsString()
   payerName?: string;
   // Mã giao dịch
-
-  //Thuộc Order ID nào ?
-  @IsNotEmpty()
-  @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
-  orderId: number;
 }

@@ -7,27 +7,38 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDTO } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 import { OrderFilterDto } from './dto/order-filter.dto';
+import { SkipThrottle } from '@nestjs/throttler';
+import { Public } from 'src/auth/decorators/public.decorator';
 
+@SkipThrottle()
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @HttpCode(200)
+  @Public()
   @Post()
-  create(@Body() createOrderDto: CreateOrderDTO) {
-    return this.ordersService.create(createOrderDto);
+  async create(@Body() createOrderDto: CreateOrderDTO) {
+    return {
+      message: 'Đã tạo order thành công !! ✅',
+      order: await this.ordersService.create(createOrderDto),
+    };
   }
 
+  @Public()
   @Get()
   async findAll(
     @Query()
     queryFilter: OrderFilterDto,
   ) {
+    console.log('CALL GET ORDERS ', queryFilter);
     const orders = await this.ordersService.findAll(queryFilter);
     return {
       message: '✅✅ Lấy danh sách đơn hàng thành công ✅✅',

@@ -284,9 +284,6 @@ model Product {
   brandId     Int?
   reviews     Review[]
 
-
-
-
    promotionProducts PromotionProduct[]
     // A: sản phẩm này có tặng quà nào không?
   giftProducts GiftProduct[] @relation("ProductWithGifts")
@@ -370,8 +367,9 @@ model Order {
   id              Int           @id @default(autoincrement())
   user          User          @relation(fields: [userId], references: [id])
   userId        Int
-  // address () // SAU NÀY BỔ SUNG THÊM PHẦN ĐỊA CHỈ 
 
+
+  address   String    // ✅ Thêm địa chỉ đơn hàng ở đây
   // Liên kết với bảng OrderItem
   total         Float         /// Tổng tiền
 
@@ -379,6 +377,11 @@ model Order {
   items           OrderItem[]
   payment Payment?
 
+
+  trackingCode String?   // ✅ Mã vận đơn (nullable cho đến khi tạo)
+
+
+  note String?
   storeId Int
   store Store @relation("StoreToOrders",fields: [storeId],references: [id])
 
@@ -402,6 +405,7 @@ model OrderItem {
 
 
     // Snapshot promotion
+  promotionName String?
   discountType  DiscountType?      // Loại khuyến mãi: "PERCENT" hoặc "FIXED", nullable nếu không có khuyến mãi
   discountValue Float?       // Giá trị khuyến mãi: ví dụ 10 (%) hoặc 50000 (đồng)
 

@@ -100,7 +100,6 @@ export class AuthController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDTO: UpdateUserDTO,
   ) {
-    console.log('CO GOI NE ');
     return {
       message: 'Đã update info user',
       userInfo: await this.authService.updateProfile(id, updateUserDTO),

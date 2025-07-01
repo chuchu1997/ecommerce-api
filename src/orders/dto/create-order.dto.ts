@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { OrderItemDTO } from './orderItem/order-item.dto';
@@ -18,15 +19,17 @@ export class CreateOrderDTO {
   @Transform(({ value }) => parseInt(value, 10))
   storeId: number;
 
-  @IsOptional()
-  @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
-  customerInfoId: number;
+  @IsNotEmpty()
+  @IsString()
+  address: string;
 
   @IsNotEmpty({ message: 'Tổng giá trị của đơn hàng không được bỏ trống' })
   @IsNumber()
   @Transform(({ value }) => Number(value))
   total: number;
+
+  @IsOptional()
+  note: string;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -36,5 +39,5 @@ export class CreateOrderDTO {
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => PaymentDto)
-  payment?: PaymentDto;
+  payment: PaymentDto;
 }

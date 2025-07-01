@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { IsOptional, IsBoolean } from 'class-validator';
+import { IsOptional, IsBoolean, IsInt } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 /**
@@ -40,4 +40,8 @@ export class OrderFilterDto {
   @IsBoolean()
   @Transform(({ value }) => value === 'true')
   isCompleted?: boolean; // Filter completed orders
+
+  @IsOptional()
+  @Transform(({ value }) => parseFloat(value))
+  userId?: number;
 }

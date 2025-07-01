@@ -8,5 +8,6 @@ import { MyLogger } from 'src/utils/logger.service';
 @Module({
   controllers: [ProductsController],
   providers: [ProductsService, PrismaService, UploadService, MyLogger],
+  exports: [ProductsService],
 })
 export class ProductsModule {}

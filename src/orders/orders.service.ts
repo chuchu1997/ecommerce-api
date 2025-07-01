@@ -8,48 +8,82 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from '@prisma/client';
+import { OrderFilterDto } from './dto/order-filter.dto';
 
 @Injectable()
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
   async create(createOrderDto: CreateOrderDTO) {
     const { items, payment, ...orderData } = createOrderDto;
-    const order = await this.prisma.order.create({
-      data: {
-        ...orderData,
 
-        status: OrderStatus.ORDERED,
-
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice, // Ensure `unitPrice` is provided in `items`
-            product: { connect: { id: item.productId } }, // Ensure `product` is connected
-          })),
-        },
-      },
-
-      include: {
-        items: true,
-      },
-    });
-    //CREATE PAYMENT AFTER CREATE ORDER
-    if (payment) {
-      await this.prisma.payment.create({
+    try {
+      const order = await this.prisma.order.create({
         data: {
-          method: payment.method as PaymentMethod,
-          status: payment.status as PaymentStatus,
-          isPaid: payment.isPaid,
-          bankName: payment.bankName,
-          payerName: payment.payerName,
-          transactionId: payment.transactionId,
-          orderId: order.id, // Gắn với đơn hàng đã tạo
+          ...orderData,
+          status: OrderStatus.ORDERED,
+          items: {
+            create: items.map((item) => ({
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              subtotal: item.subtotal,
+              promotionName: item.promotionName ?? '',
+              discountType: item.discountType ?? null,
+              discountValue: item.discountValue ?? null,
+              giftItems: item.giftItems?.length
+                ? {
+                    create: item.giftItems.map((gift) => ({
+                      giftName: gift.giftName,
+                      giftImage: gift.giftImage,
+                      giftQuantity: gift.giftQuantity,
+                    })),
+                  }
+                : undefined,
+              product: { connect: { id: item.productId } }, // Ensure `product` is connected
+            })),
+          },
+          payment: {
+            create: {
+              method: payment.method as PaymentMethod,
+              status: payment.status as PaymentStatus,
+              isPaid: payment.isPaid,
+              bankName: payment.bankName,
+              payerName: payment.payerName,
+              transactionId: payment.transactionId,
+            },
+          },
+        },
+
+        include: {
+          items: true,
         },
       });
-    }
+      //CREATE PAYMENT AFTER CREATE ORDER
+      // CẬP NHẬT LẠI STOCK CỦA SẢN PHẨM
+      for (const item of items) {
+        await this.prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              decrement: item.quantity, // Trừ đi số lượng đã đặt
+            },
+          },
+        });
+      }
 
-    return order;
+      // CẬP NHẬT LẠI GIỎ HÀNG CỦA NGƯỜI DÙNG KHI ĐÃ ĐẶT HÀNG THÀNH CÔNG
+
+      await this.prisma.cartItem.deleteMany({
+        where: {
+          productId: {
+            in: items.map((item) => item.productId),
+          },
+        },
+      });
+
+      return order;
+    } catch (err) {
+      console.log('ERROR ', err);
+    }
   }
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     const { items = [], payment, status, ...orderData } = updateOrderDto;
@@ -71,37 +105,54 @@ export class OrdersService {
     return updatedOrder;
   }
 
-  async findAll(query: {
-    isToday?: boolean; // Lấy trong 24h qua
-    isThisWeek?: boolean; // Lấy trong 7 ngày qua
-    isThisMonth?: boolean;
-    isCanceled?: boolean; // Đơn hàng bị hủy
-    isSent?: boolean; // Đơn hàng đã gửi
-    isDelivered?: boolean; // Đơn hàng đã giao
-    isCompleted?: boolean; // Đơn hàng đã thành công
-  }): Promise<Order[]> {
-    const orders = await this.prisma.order.findMany({
-      where: {
-        createdAt: {
-          gte: query.isToday
-            ? new Date(Date.now() - 24 * 60 * 60 * 1000)
-            : query.isThisWeek
-              ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-              : query.isThisMonth
-                ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                : undefined,
+  async findAll(query: OrderFilterDto) {
+    try {
+      const orders = await this.prisma.order.findMany({
+        where: {
+          userId: query.userId,
+          createdAt: {
+            gte: query.isToday
+              ? new Date(Date.now() - 24 * 60 * 60 * 1000)
+              : query.isThisWeek
+                ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                : query.isThisMonth
+                  ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                  : undefined,
+          },
+
+          // status: {
+          //   in: [
+          //     query.isCanceled ? 'CANCELED' : undefined,
+          //     query.isSent ? 'SENT' : undefined,
+          //     query.isDelivered ? 'DELIVERED' : undefined,
+          //     query.isCompleted ? 'COMPLETED' : undefined,
+          //   ].filter(Boolean) as OrderStatus[],
+          // },
         },
-        status: {
-          in: [
-            query.isCanceled ? 'CANCELED' : undefined,
-            query.isSent ? 'SENT' : undefined,
-            query.isDelivered ? 'DELIVERED' : undefined,
-            query.isCompleted ? 'COMPLETED' : undefined,
-          ].filter(Boolean) as OrderStatus[],
+        include: {
+          payment: true,
+          items: {
+            include: {
+              giftItems: true,
+              product: {
+                include: {
+                  promotionProducts: {
+                    select: {
+                      promotion: true,
+                    },
+                  },
+                  images: true,
+                },
+              },
+            },
+          },
         },
-      },
-    });
-    return orders;
+      });
+
+      return orders;
+    } catch (err) {
+      console.log('ERR', err);
+    }
 
     // return `This action returns all orders`;
   }
@@ -111,6 +162,9 @@ export class OrdersService {
   }
 
   remove(id: number) {
+    //     DELETE FROM "OrderGiftItem";
+    // DELETE FROM "OrderItem";
+    // DELETE FROM "Order";
     return `This action removes a #${id} order`;
   }
 }

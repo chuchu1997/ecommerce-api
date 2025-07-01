@@ -23,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PromotionCronService } from './utils/schedule.service';
 import { PrismaService } from './prisma.service';
 import { CartModule } from './cart/cart.module';
+import { FakecommentsModule } from './fakecomments/fakecomments.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CartModule } from './cart/cart.module';
     ArticlesModule,
     PromotionModule,
     CartModule,
+    FakecommentsModule,
   ],
   controllers: [AppController],
   providers: [
