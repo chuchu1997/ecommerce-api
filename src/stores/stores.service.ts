@@ -50,16 +50,17 @@ export class StoresService {
     });
   }
 
-  async findOne(id: number, userId: number) {
-    return await this.prisma.store.findUnique({
+  async findOne(id: number) {
+    let store = await this.prisma.store.findUnique({
       where: {
         id,
-        userID: userId,
       },
       include: {
         socials: true,
       },
     });
+    console.log('STORE', store);
+    return store;
   }
 
   async update(id: number, updateStoreDto: UpdateStoreDto) {

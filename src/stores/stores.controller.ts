@@ -42,13 +42,11 @@ export class StoresController {
   //DÙNG ĐỂ LẤY SDT + EMAIL + ADDRESS + SOCIALS CỦA STORE !!
   @Public()
   @Get(':id')
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('userID', ParseIntPipe) userID: number,
-  ) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    console.log('CALL GET STORE', id);
     return {
       message: ' Tìm thấy Store  ✅',
-      store: await this.storesService.findOne(id, userID),
+      store: await this.storesService.findOne(id),
     };
   }
 

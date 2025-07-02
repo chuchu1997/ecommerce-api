@@ -184,14 +184,6 @@ export class CategoriesService {
         }),
         ...data,
         parentId: data.parentId ?? null,
-        ...(seo && {
-          //NẾU CÓ DATA SEO THÌ CẬP NHẬT KHÔNG THÌ BỎ QUA !!!
-          seo: {
-            update: {
-              ...seo,
-            },
-          },
-        }),
       },
     });
 
