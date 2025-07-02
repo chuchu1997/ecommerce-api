@@ -59,7 +59,7 @@ export class StoresService {
         socials: true,
       },
     });
-    console.log('STORE', store);
+
     return store;
   }
 

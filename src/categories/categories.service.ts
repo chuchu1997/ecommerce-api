@@ -124,7 +124,7 @@ export class CategoriesService {
         storeId: storeID, // ✅
       },
     });
-    console.log('ALL CATEGORY IDS', allCategoryIds);
+
     // Get all products from all these categories
     const allProducts = await this.prisma.product.findMany({
       where: {

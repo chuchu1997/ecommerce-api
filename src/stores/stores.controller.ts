@@ -43,7 +43,6 @@ export class StoresController {
   @Public()
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    console.log('CALL GET STORE', id);
     return {
       message: ' Tìm thấy Store  ✅',
       store: await this.storesService.findOne(id),

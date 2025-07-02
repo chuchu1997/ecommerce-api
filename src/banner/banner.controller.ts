@@ -33,7 +33,6 @@ export class BannerController {
   @Public()
   @Get()
   async findAll(@Query() query: BannerFilterDto) {
-    console.log('BANNER CALL !!');
     const banners = await this.bannerService.findAll(query);
     return {
       message: ' Lấy tất cả Banner thành công ✅',
