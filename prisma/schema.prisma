@@ -44,8 +44,6 @@ enum DiscountType {
 
 enum OrderStatus {
   ORDERED           // Đã đặt hàng
-  AWAITING_SHIPMENT // Chờ chuyển phát
-  IN_TRANSIT        // Đang trung chuyển
   DELIVERED         // Đã giao đơn hàng
   CANCELED          // Đã hủy
 }

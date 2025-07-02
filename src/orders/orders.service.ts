@@ -105,11 +105,15 @@ export class OrdersService {
     return updatedOrder;
   }
 
+  async getTotalOrder() {
+    return await this.prisma.order.count();
+  }
+
   async findAll(query: OrderFilterDto) {
     try {
       const orders = await this.prisma.order.findMany({
         where: {
-          userId: query.userId,
+          userId: query.userId ?? undefined,
           createdAt: {
             gte: query.isToday
               ? new Date(Date.now() - 24 * 60 * 60 * 1000)
@@ -129,7 +133,16 @@ export class OrdersService {
           //   ].filter(Boolean) as OrderStatus[],
           // },
         },
+        take: query.limit ?? undefined,
+        skip: (query.currentPage - 1) * query.limit,
         include: {
+          user: {
+            select: {
+              name: true,
+              address: true,
+              phone: true,
+            },
+          },
           payment: true,
           items: {
             include: {

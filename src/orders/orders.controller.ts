@@ -38,11 +38,11 @@ export class OrdersController {
     @Query()
     queryFilter: OrderFilterDto,
   ) {
-    console.log('CALL GET ORDERS ', queryFilter);
     const orders = await this.ordersService.findAll(queryFilter);
     return {
       message: '✅✅ Lấy danh sách đơn hàng thành công ✅✅',
-      orders,
+      orders: orders ?? [],
+      total: await this.ordersService.getTotalOrder(),
     };
   }
 
