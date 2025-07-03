@@ -44,7 +44,8 @@ enum DiscountType {
 
 enum OrderStatus {
   ORDERED           // Đã đặt hàng
-  DELIVERED         // Đã giao đơn hàng
+  ON_SHIP         // Đang giao 
+  COMPLETED         // Đã thành công 
   CANCELED          // Đã hủy
 }
 
@@ -157,11 +158,13 @@ model News {
    id          Int          @id @default(autoincrement())
    title String 
    slug String @unique 
+   shortDescription String? @db.Text
    description   String   @db.Text
    imageUrl     String?  // URL ảnh đại diện của bài viết
    storeId   Int?  // Tin có thể không thuộc store nào (optional)
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
+   seo Json?
   // Quan hệ
    store Store? @relation("StoreToNews",fields: [storeId],references: [id])
    @@index([storeId])

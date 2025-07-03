@@ -113,6 +113,11 @@ export class ProductsService {
               promotion: true,
             },
           },
+          category: {
+            select: {
+              slug: true,
+            },
+          },
           // category: true,
           giftProducts: {
             include: {

@@ -12,13 +12,14 @@ export class ArticlesService {
     private uploadService: UploadService,
   ) {}
   async create(createArticleDto: CreateArticleDto) {
+    const { seo, ...data } = createArticleDto;
+
     const article = await this.prisma.news.create({
       data: {
-        title: createArticleDto.title,
-        description: createArticleDto.description,
-        slug: createArticleDto.slug,
-        storeId: createArticleDto.storeId,
-        imageUrl: createArticleDto.imageUrl,
+        ...(seo !== undefined && {
+          seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
+        }),
+        ...data,
       },
     });
     return article;
@@ -44,12 +45,16 @@ export class ArticlesService {
       },
     });
   }
-  findOne(id: number) {
-    return `This action returns a #$ article`;
+  async findOne(slug: string) {
+    return await this.prisma.news.findUnique({
+      where: {
+        slug: slug,
+      },
+    });
   }
 
   async update(id: number, updateArticleDto: UpdateArticleDto) {
-    const { imageUrl, ...data } = updateArticleDto;
+    const { imageUrl, seo, ...data } = updateArticleDto;
 
     const existArticle = await this.prisma.news.findUnique({
       where: { id },
@@ -71,6 +76,9 @@ export class ArticlesService {
       },
       data: {
         ...data,
+        ...(seo !== undefined && {
+          seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
+        }),
         imageUrl: imageUrl,
       },
     });

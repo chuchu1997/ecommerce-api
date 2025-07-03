@@ -46,9 +46,12 @@ export class ArticlesController {
   }
 
   @Public()
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.articlesService.findOne(id);
+  @Get(':slug')
+  async findOne(@Param('slug') slug: string) {
+    return {
+      message: 'Tìm thấy bài viết ✅',
+      article: await this.articlesService.findOne(slug),
+    };
   }
 
   @Roles(Role.ADMIN)

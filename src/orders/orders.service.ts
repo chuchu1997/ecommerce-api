@@ -86,23 +86,48 @@ export class OrdersService {
     }
   }
   async update(id: number, updateOrderDto: UpdateOrderDto) {
-    const { items = [], payment, status, ...orderData } = updateOrderDto;
+    const { status, updatedAt, trackingCode } = updateOrderDto;
+
     const existingOrder = await this.prisma.order.findUnique({
       where: { id },
+      select: { status: true },
     });
-    if (!existingOrder) {
-      throw new BadRequestException(
-        `⚠️⚠️⚠️ Không tìm thấy đơn hàng để cập nhật trạng thái với ID ${id} ⚠️⚠️⚠️`,
-      );
-    }
-    const updatedOrder = await this.prisma.order.update({
+
+    const order = await this.prisma.order.update({
       where: { id },
-      data: {
-        ...orderData,
+      data: { trackingCode, status, updatedAt },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { id: true },
+            },
+          },
+        },
       },
     });
 
-    return updatedOrder;
+    if (existingOrder?.status !== 'CANCELED' && status === 'CANCELED') {
+      console.log('CO NHAY VAO ');
+      for (const item of order.items) {
+        const quantity = item.quantity;
+        const productId = item.productId;
+        console.log('quantity', quantity);
+
+        if (quantity > 0) {
+          await this.prisma.product.update({
+            where: { id: productId },
+            data: {
+              stock: {
+                increment: quantity,
+              },
+            },
+          });
+        }
+      }
+    }
+
+    return order;
   }
 
   async getTotalOrder() {
@@ -135,6 +160,9 @@ export class OrdersService {
         },
         take: query.limit ?? undefined,
         skip: (query.currentPage - 1) * query.limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
         include: {
           user: {
             select: {
@@ -174,10 +202,29 @@ export class OrdersService {
     return `This action returns a #${id} order`;
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     //     DELETE FROM "OrderGiftItem";
     // DELETE FROM "OrderItem";
     // DELETE FROM "Order";
-    return `This action removes a #${id} order`;
+    try {
+      await this.prisma.order.update({
+        where: { id },
+        data: {
+          payment: {
+            delete: true,
+          },
+          items: {
+            deleteMany: {},
+          },
+        },
+      });
+      return await this.prisma.order.delete({
+        where: {
+          id: id,
+        },
+      });
+    } catch (err) {
+      console.log('ERR', err);
+    }
   }
 }

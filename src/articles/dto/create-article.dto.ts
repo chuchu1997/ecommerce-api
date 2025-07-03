@@ -2,6 +2,7 @@ import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -14,6 +15,13 @@ export class CreateArticleDto {
   @MinLength(3, { message: 'Tên sản phẩm phải có ít nhất 3 ký tự' })
   @MaxLength(200, { message: 'Tên sản phẩm không được vượt quá 200 ký tự' })
   title: string;
+
+  @IsOptional()
+  @IsString()
+  shortDescription?: string;
+
+  @IsOptional()
+  seo?: JSON;
 
   @IsString()
   @IsNotEmpty()
