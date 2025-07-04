@@ -14,9 +14,28 @@ export class CartService {
   async findAll(query: FilterCartDto) {
     const { userId, isSelect } = query;
 
+    let user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    // 2. Nếu không có user → tạo mới
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          cart: {
+            create: {
+              items: {
+                create: [],
+              },
+            },
+          },
+        },
+      });
+    }
+
     return await this.prisma.cart.findUnique({
       where: {
-        userId,
+        userId: user.id,
       },
       include: {
         items: {
