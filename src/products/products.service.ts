@@ -241,52 +241,21 @@ export class ProductsService {
     }
 
     try {
-      if (giftProducts !== undefined) {
-        // Get current gift relationships
-        const currentGifts = await this.prisma.giftProduct.findMany({
-          where: { productId: id },
-          select: { giftId: true },
-        });
-
-        const currentGiftIds = currentGifts.map((g) => g.giftId);
-        const newGiftIds = giftProducts
-          .filter((g) => g && g.id)
-          .map((g) => g.id);
-
-        // Find what to delete and what to add
-        const toDelete = currentGiftIds
-          .filter((giftId): giftId is number => giftId !== null)
-          .filter((giftId) => !newGiftIds.includes(giftId));
-        const toAdd = newGiftIds.filter(
-          (giftId) => !currentGiftIds.includes(giftId),
-        );
-
-        // Delete removed gifts
-        if (toDelete.length > 0) {
-          await this.prisma.giftProduct.deleteMany({
-            where: {
-              productId: id,
-              giftId: { in: toDelete },
-            },
-          });
-        }
-
-        // Add new gifts
-        if (toAdd.length > 0) {
-          await this.prisma.giftProduct.createMany({
-            data: toAdd.map((giftId) => ({
-              productId: id,
-              giftId: giftId,
-            })),
-          });
-        }
-      }
-
       const product = await this.prisma.product.update({
         where: {
           id,
         },
         data: {
+          giftProducts: {
+            deleteMany: {},
+            createMany: {
+              data: giftProducts
+                .filter((g) => g && g.id)
+                .map((g) => ({
+                  giftId: g.id,
+                })),
+            },
+          },
           ...(seo !== undefined && {
             seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
           }),
