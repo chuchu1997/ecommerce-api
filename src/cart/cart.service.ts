@@ -58,11 +58,24 @@ export class CartService {
 
   async update(id: number, updateCartDto: UpdateCartDto) {
     const { userId, items } = updateCartDto;
+    let user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          id: userId, // hoặc để Prisma tự sinh ID mới nếu dùng UUID hay auto increment
+          // Các trường cần thiết khác như email, name, etc.
+        },
+      });
+    }
 
     return await this.prisma.cart.update({
       where: {
         id: id,
-        userId: userId,
+        userId: user.id,
       },
       data: {
         items: {
