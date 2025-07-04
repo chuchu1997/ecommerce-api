@@ -239,23 +239,24 @@ export class ProductsService {
         urlsToDelete.map((url) => this.uploadService.deleteImagesFromS3(url)),
       );
     }
-
+    const validGifts =
+      giftProducts?.filter((g) => g && typeof g.id === 'number') ?? [];
     try {
       const product = await this.prisma.product.update({
         where: {
           id,
         },
         data: {
-          giftProducts: {
-            deleteMany: {},
-            createMany: {
-              data: giftProducts
-                .filter((g) => g && g.id)
-                .map((g) => ({
+          ...(validGifts.length > 0 && {
+            giftProducts: {
+              deleteMany: {},
+              createMany: {
+                data: validGifts.map((g) => ({
                   giftId: g.id,
                 })),
+              },
             },
-          },
+          }),
           ...(seo !== undefined && {
             seo: seo as any, // Cast to 'any' or 'Prisma.InputJsonValue'
           }),
