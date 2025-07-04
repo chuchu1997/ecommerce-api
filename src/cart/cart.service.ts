@@ -68,6 +68,17 @@ export class CartService {
         data: {
           id: userId, // hoặc để Prisma tự sinh ID mới nếu dùng UUID hay auto increment
           // Các trường cần thiết khác như email, name, etc.
+          cart: {
+            create: {
+              items: {
+                create: items?.map((item) => ({
+                  productId: item.productId,
+                  isSelect: true,
+                  quantity: item.quantity,
+                })),
+              },
+            },
+          },
         },
       });
     }
