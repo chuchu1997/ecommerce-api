@@ -194,6 +194,7 @@ export class ProductsService {
         id,
       },
       include: {
+        fakeComments: true,
         images: true,
         category: true,
         colors: true,
@@ -373,6 +374,9 @@ export class ProductsService {
     await this.prisma.product.update({
       where: { id },
       data: {
+        fakeComments: {
+          deleteMany: {},
+        },
         images: {
           deleteMany: {},
           // Xóa tất cả ảnh liên quan đến sản phẩm ở bảng images quan hệ đến productId

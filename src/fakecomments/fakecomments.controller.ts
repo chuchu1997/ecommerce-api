@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FakecommentsService } from './fakecomments.service';
 import { CreateFakecommentDto } from './dto/create-fakecomment.dto';
@@ -24,14 +25,21 @@ export class FakecommentsController {
 
   @Roles(Role.ADMIN)
   @Post()
-  create(@Body() createFakecommentDto: CreateFakecommentDto) {
-    return this.fakecommentsService.create(createFakecommentDto);
+  async create(@Body() createFakecommentDto: CreateFakecommentDto) {
+    return {
+      message: 'Đã tạo thành công comment mới',
+      comment: await this.fakecommentsService.create(createFakecommentDto),
+    };
   }
 
   @Public()
   @Get()
-  findAll(@Query() filterDto: FakeCommentQueryDto) {
-    return this.fakecommentsService.findAll(filterDto);
+  async findAll(@Query() filterDto: FakeCommentQueryDto) {
+    return {
+      message: 'Lấy tất cả bình luận giả thành công 👍',
+      comments: await this.fakecommentsService.findAll(filterDto),
+      total: await this.fakecommentsService.getTotal(),
+    };
   }
 
   @Get(':id')
@@ -39,12 +47,16 @@ export class FakecommentsController {
     return this.fakecommentsService.findOne(+id);
   }
 
+  @Roles(Role.ADMIN)
   @Patch(':id')
-  update(
-    @Param('id') id: string,
+  async update(
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateFakecommentDto: UpdateFakecommentDto,
   ) {
-    return this.fakecommentsService.update(+id, updateFakecommentDto);
+    return {
+      message: 'Đã cập nhập comment thành công 👍',
+      comment: await this.fakecommentsService.update(id, updateFakecommentDto),
+    };
   }
 
   @Delete(':id')
