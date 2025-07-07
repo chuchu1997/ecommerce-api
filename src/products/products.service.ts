@@ -113,6 +113,7 @@ export class ProductsService {
               promotion: true,
             },
           },
+          fakeComments: true,
           category: {
             select: {
               slug: true,
