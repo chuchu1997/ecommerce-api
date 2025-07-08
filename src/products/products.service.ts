@@ -375,6 +375,9 @@ export class ProductsService {
     await this.prisma.product.update({
       where: { id },
       data: {
+        promotionProducts: {
+          deleteMany: {},
+        },
         fakeComments: {
           deleteMany: {},
         },
